@@ -106,7 +106,6 @@
     line-height: 1;
     padding-bottom: 1px;
   }
-
   /* ── Restore button (shown after minimise) ── */
   #restore-btn {
     display: none;
@@ -126,6 +125,26 @@
     z-index: 9999;
   }
   #restore-btn:hover { background: #4b5563; }
+
+  /* ── Fullscreen button (fixed, bottom-right) ── */
+  #fullscreen-btn {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
+    background: #374151;
+    color: #f3f4f6;
+    border: 2px solid #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+  }
+  #fullscreen-btn:hover { background: #4b5563; }
 
   /* ── Page visibility ── */
   .page { display: none; }
@@ -438,7 +457,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
       <div class="pat-info">
-        <div class="pid">xxxx</div>
+        <div class="pid">3502</div>
         <div class="pname">Unknown</div>
       </div>
       <div class="pat-gender">M</div>
@@ -448,7 +467,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
       <div class="pat-info">
-        <div class="pid">xxxx</div>
+        <div class="pid">3603</div>
         <div class="pname">Faizal</div>
       </div>
       <div class="pat-gender">M</div>
@@ -458,7 +477,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
       <div class="pat-info">
-        <div class="pid">xxxx</div>
+        <div class="pid">3604</div>
         <div class="pname">Lucas</div>
       </div>
       <div class="pat-gender">M</div>
@@ -469,7 +488,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
       <div class="pat-info">
-        <div class="pid">xxxx</div>
+        <div class="pid">4227</div>
         <div class="pname">Priya</div>
       </div>
       <div class="pat-gender">F</div>
@@ -479,7 +498,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
       <div class="pat-info">
-        <div class="pid">xxxx</div>
+        <div class="pid">4508</div>
         <div class="pname">Jane</div>
       </div>
       <div class="pat-gender">F</div>
@@ -668,6 +687,9 @@
 <!-- Restore button — visible when a page is minimised -->
 <button id="restore-btn" title="Restore" onclick="restorePage()">...</button>
 
+<!-- Fullscreen toggle button — fixed bottom-right -->
+<button id="fullscreen-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+
 <div class="modal-overlay" id="task-modal">
   <div class="modal-box">
     <div class="modal-title" id="modal-task-title"></div>
@@ -686,11 +708,11 @@
     m01: { id: '3501', name: 'KEVIN',   gender: 'M' },
     f01: { id: '4105', name: 'MABEL',   gender: 'F' },
     f02: { id: '4136', name: 'UNKNOWN', gender: 'F' },
-    m02: { id: 'xxxx', name: 'UNKNOWN', gender: 'M' },
-    m03: { id: 'xxxx', name: 'Faizal',  gender: 'M' },
-    m04: { id: 'xxxx', name: 'Lucas',   gender: 'M' },
-    f03: { id: 'xxxx', name: 'Priya',   gender: 'F' },
-    f04: { id: 'xxxx', name: 'Jane',    gender: 'F' },
+    m02: { id: '3502', name: 'UNKNOWN', gender: 'M' },
+    m03: { id: '3603', name: 'Faizal',  gender: 'M' },
+    m04: { id: '3604', name: 'Lucas',   gender: 'M' },
+    f03: { id: '4227', name: 'Priya',   gender: 'F' },
+    f04: { id: '4508', name: 'Jane',    gender: 'F' },
   };
   let currentPatient = 'm01';
 
@@ -718,6 +740,15 @@
       _minimisedPageId = null;
     }
     document.getElementById('restore-btn').style.display = 'none';
+  }
+
+  /* ── Fullscreen toggle ── */
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
   }
 
   function openPatient(patientKey) {
@@ -784,40 +815,40 @@
     m03: {
       va:      ['SpO2','BP Cuff','Cardiac Monitoring','Chest Tube'],
       diag:    ['X-ray Chest','X ray arm','Full Blood Count','Renal Panel','Blood Gases'],
-      bedside: ['x'],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
     m04: {
       va:      ['SpO2','BP Cuff','Cardiac Monitoring','Nasal Prongs','Non-rebreather',
                 'BVM Bag Valve Mask','SAM Splint'],
       diag:    ['X-ray Chest','Full Blood Count','Renal Panel'],
-      bedside: ['x'],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
     f01: {
       va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring','Pelvic Binder',
                 'IV Tranexamic Acid','Blood (Packed Cells)'],
       diag:    ['X-ray Chest','Pelvis X ray','Upper/Lower Leg X-ray',
                 'Full Blood Count','Renal Panel'],
-      bedside: [],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
     f02: {
       va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring',
                 'IV Mannitol','IV Keppra','Wound Dressing','SAM Splint','Traction Device'],
       diag:    ['Upper/Lower Leg X-ray','Full Blood Count','Renal Panel','Blood Gases'],
-      bedside: [],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
     f03: {
       va:      ['SpO2','BP Cuff','Cardiac Monitoring','IM ATT tetanus vaccine',
                 'Wound Dressing'],
       diag:    ['X-ray Chest','Pelvis X ray','Upper/Lower Leg X-ray','X ray arm',
                 'Full Blood Count','Renal Panel','Blood Gases'],
-      bedside: [],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
     f04: {
       va:      ['SpO2','BP Cuff','Cardiac Monitoring','Nasal Prongs','Non-rebreather',
                 'BVM Bag Valve Mask','Wound Dressing','Crepe Bandage'],
       diag:    ['Pelvis X ray','X-ray Chest','X ray arm','Upper/Lower Leg X-ray',
                 'Full Blood Count','Renal Panel'],
-      bedside: [],
+      bedside: ['POCUS / eFAST','Glucometer'],
     },
   };
 
