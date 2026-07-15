@@ -538,9 +538,9 @@
     </div>
     <div class="task-section-label">— TASK TRAINERS —</div>
     <div class="hub-task-btns">
-      <button class="task-btn" onclick="openModal('C-A-T Tourniquet')">C-A-T<br>Tourniquet</button>
-      <button class="task-btn" onclick="openModal('ETT')">ETT</button>
-      <button class="task-btn" onclick="openModal('Laryngoscope')">Laryngoscope</button>
+      <button class="task-btn" id="task-cat"        onclick="openModal('C-A-T Tourniquet')">C-A-T<br>Tourniquet</button>
+      <button class="task-btn" id="task-ett"        onclick="openModal('ETT')">ETT</button>
+      <button class="task-btn" id="task-laryngo"    onclick="openModal('Laryngoscope')">Laryngoscope</button>
     </div>
   </div>
 </div>
@@ -755,6 +755,7 @@
     currentPatient = patientKey;
     const p = PATIENTS[patientKey];
     setPatientHeader('hub-pid', 'hub-pname', p);
+    renderTaskBtns();
     goTo('page-hub');
   }
 
@@ -792,63 +793,158 @@
     goTo('page-transfer');
   }
 
-  /* ── Treatment data (from treatments.csv) ── */
-  // Columns: Key, Gender, Age, Name, Injuries, Treatments, Lab, Bedside PoC, POCUS
+
+  /* ── Task Trainer button styling ── */
+  function renderTaskBtns() {
+    const taskList = (TREATMENTS[currentPatient] || {}).tasks || [];
+    const map = {
+      'task-cat':    'C-A-T Tourniquet',
+      'task-ett':    'ETT',
+      'task-laryngo':'Laryngoscope',
+    };
+    Object.entries(map).forEach(([id, name]) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const active = taskList.includes(name);
+      btn.style.background    = active ? '' : '#6b7280';
+      btn.style.color         = active ? '' : '#d1d5db';
+      btn.style.cursor        = active ? '' : 'default';
+      btn.onclick             = active ? () => openModal(name) : null;
+    });
+  }
+
+
+  /* ── Treatment data (from Treatments-New.csv) ── */
+  // Columns: Activities, Category, Treatment, Initial Inventory, then Y/NR per patient
+  // Patient order: m01(3501), m02(3502), m03(3603), m04(3604), f01(4105), f02(4136), f03(4227), f04(4508)
   // Each key maps to { va: [...], diag: [...], bedside: [...] }
   // Matched buttons → bold text; unmatched → light grey background
+
+  /*
+  -- all values for keys (Y for at least one patient) --
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring','IV cannula',"Hartmann's Sol",'Blood (Packed Cells)',
+                'Analgesia (Rapid IV push)','RSI Drugs (Rapid IV push)','IO Intraosseous Needle',
+                'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','IV Tranexamic Acid',
+                'IV Mannitol','IV Keppra','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Burns Dressing','Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Pelvic Binder','Toilet and Suture set','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Urinary catheter','Chest Tube','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','CT Chest or Thorax','Pelvis X ray',
+                'CT Chest, Abdomen and Pelvis','Upper/Lower Leg X-ray','CT Abdomen and Pelvis',
+                'X ray arm','Cervical Spine X-ray, AP and Lat, Open Mouth','CT Brain','CR Cervical Spine',
+                'Full Blood Count','Pancreatic Amylase, serum','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood',
+                'Liver Panel (TP/ALB/TBIL/ALP/ALT/AST/GGT), serum','APTT, PT & INR',
+                'Troponin-T, ng/L','PT & INR','Creatine Kinase, serum','Lactate, Plain blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+  */
+
   const TREATMENTS = {
     m01: {
-      va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring','Wound Dressing','SAM Splint',
-                'Traction Device',"Hartmann's Sol",'Blood (Packed Cells)','Crepe Bandage',
-                'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','Toilet and Suture set'],
-      diag:    ['X-ray Chest','Pelvis X ray','Upper/Lower Leg X-ray',
-                'Full Blood Count','Renal Panel'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Toilet and Suture set','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
     },
     m02: {
-      va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring',
-                "Hartmann's Sol",'Nasal Prongs','Non-rebreather','BVM Bag Valve Mask',
-                'Urinary catheter','Burns Dressing'],
-      diag:    ['Full Blood Count','Renal Panel','Blood Gases'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Burns Dressing','Wound Dressing','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Urinary catheter','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['ETT','Laryngoscope'],
     },
     m03: {
-      va:      ['SpO2','BP Cuff','Cardiac Monitoring','Chest Tube'],
-      diag:    ['X-ray Chest','X ray arm','Full Blood Count','Renal Panel','Blood Gases'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Cervical Collar','Non-rebreather','Nasal Prongs',
+                'Chest Tube','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
     },
     m04: {
-      va:      ['SpO2','BP Cuff','Cardiac Monitoring','Nasal Prongs','Non-rebreather',
-                'BVM Bag Valve Mask','SAM Splint'],
-      diag:    ['X-ray Chest','Full Blood Count','Renal Panel'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'SAM Splint','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
     },
     f01: {
-      va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring','Pelvic Binder',
-                'IV Tranexamic Acid','Blood (Packed Cells)'],
-      diag:    ['X-ray Chest','Pelvis X ray','Upper/Lower Leg X-ray',
-                'Full Blood Count','Renal Panel'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IO Intraosseous Needle','IV Tranexamic Acid',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Cervical Collar','Pelvic Binder',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
     },
     f02: {
-      va:      ['IV cannula','SpO2','BP Cuff','Cardiac Monitoring',
-                'IV Mannitol','IV Keppra','Wound Dressing','SAM Splint','Traction Device'],
-      diag:    ['Upper/Lower Leg X-ray','Full Blood Count','Renal Panel','Blood Gases'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IV Mannitol','IV Keppra',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'CT Brain',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['ETT','Laryngoscope'],
     },
     f03: {
-      va:      ['SpO2','BP Cuff','Cardiac Monitoring','IM ATT tetanus vaccine',
-                'Wound Dressing'],
-      diag:    ['X-ray Chest','Pelvis X ray','Upper/Lower Leg X-ray','X ray arm',
-                'Full Blood Count','Renal Panel','Blood Gases'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IM ATT tetanus vaccine',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'X ray arm',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['C-A-T Tourniquet','ETT','Laryngoscope'],
     },
     f04: {
-      va:      ['SpO2','BP Cuff','Cardiac Monitoring','Nasal Prongs','Non-rebreather',
-                'BVM Bag Valve Mask','Wound Dressing','Crepe Bandage'],
-      diag:    ['Pelvis X ray','X-ray Chest','X ray arm','Upper/Lower Leg X-ray',
-                'Full Blood Count','Renal Panel'],
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','Cervical Collar','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
     },
   };
 
@@ -1024,6 +1120,7 @@
   }
 
   /* ── Init ── */
+  renderTaskBtns();
   switchTab('vitals');
   switchDiagTab('imaging');
 </script>
