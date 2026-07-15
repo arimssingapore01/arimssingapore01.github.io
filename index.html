@@ -14,7 +14,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 20px 20px 64px;
   }
 
   /* ── Card shell ── */
@@ -126,23 +126,58 @@
   }
   #restore-btn:hover { background: #4b5563; }
 
-  /* ── Fullscreen button (fixed, bottom-right) ── */
-  #fullscreen-btn {
+  /* ── Bottom navigation bar ── */
+  #bottom-nav {
     position: fixed;
-    bottom: 18px;
-    right: 18px;
-    width: 36px;
-    height: 36px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: #1f2937;
+    border-top: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 9998;
+  }
+  #bottom-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #374151;
+    border: 1.5px solid #6b7280;
+    border-radius: 10px;
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 14px;
+    height: 32px;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+  }
+  #bottom-nav .nav-link:hover { background: #4b5563; color: #fff; }
+  #bottom-nav .nav-link .nav-icon {
+    width: 22px; height: 22px;
+    background: #6b7280;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #bottom-nav .nav-link .nav-icon svg { fill: #fff; }
+  #fullscreen-btn {
     background: #374151;
     color: #f3f4f6;
-    border: 2px solid #6b7280;
+    border: 1.5px solid #6b7280;
     border-radius: 8px;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9998;
   }
   #fullscreen-btn:hover { background: #4b5563; }
 
@@ -687,8 +722,16 @@
 <!-- Restore button — visible when a page is minimised -->
 <button id="restore-btn" title="Restore" onclick="restorePage()">...</button>
 
-<!-- Fullscreen toggle button — fixed bottom-right -->
-<button id="fullscreen-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+<!-- Bottom navigation bar -->
+<div id="bottom-nav">
+  <a class="nav-link" href="dashboard.html" title="Open Patient Dashboard">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    </span>
+    Dashboard
+  </a>
+  <button id="fullscreen-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+</div>
 
 <div class="modal-overlay" id="task-modal">
   <div class="modal-box">

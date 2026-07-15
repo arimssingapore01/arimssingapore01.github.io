@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCI – Patient Summaries</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1e2330;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 18px 12px 40px;
+    color: #e5e7eb;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+  .app-header img.logo {
+    height: 44px;
+    object-fit: contain;
+  }
+  .app-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .app-title span {
+    color: #f59e0b;
+  }
+  .header-right {
+    display: flex;
+    gap: 8px;
+  }
+  .icon-btn {
+    background: #374151;
+    border: 1.5px solid #4b5563;
+    border-radius: 8px;
+    color: #d1d5db;
+    font-size: 16px;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .icon-btn:hover { background: #4b5563; color: #fff; }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    padding: 0;
+  }
+  .tab-btn {
+    background: #2d3748;
+    border: 1.5px solid #4b5563;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px 10px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    position: relative;
+    bottom: -2px;
+  }
+  .tab-btn:hover { background: #374151; color: #e5e7eb; }
+  .tab-btn.active {
+    background: #3b4252;
+    border-color: #6b7280;
+    color: #fff;
+    font-weight: 700;
+    z-index: 1;
+    border-bottom: 2px solid #3b4252;
+  }
+  .tab-btn .gender-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .tab-btn .gender-dot.m { background: #60a5fa; }
+  .tab-btn .gender-dot.f { background: #f472b6; }
+
+  /* ── Patient Panel ── */
+  .patient-panel {
+    display: none;
+    width: 100%;
+    max-width: 1100px;
+    background: #3b4252;
+    border: 1.5px solid #6b7280;
+    border-radius: 0 12px 12px 12px;
+    padding: 22px 24px 28px;
+    position: relative;
+    z-index: 0;
+  }
+  .patient-panel.active { display: block; }
+
+  /* ── Panel: 2-column grid ── */
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+  }
+
+  /* ── Photo + basic ID block ── */
+  .photo-block {
+    grid-column: 1;
+    grid-row: 1;
+    background: #2d3748;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .photo-block img {
+    width: 100%;
+    height: auto;
+    max-height: 320px;
+    object-fit: contain;
+    object-position: center center;
+    display: block;
+    background: #1e2330;
+  }
+  .photo-block .photo-placeholder {
+    width: 100%;
+    height: 280px;
+    background: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: #6b7280;
+  }
+  .patient-id-bar {
+    width: 100%;
+    padding: 10px 14px 12px;
+    background: #2d3748;
+    border-top: 1px solid #4b5563;
+  }
+  .patient-id-bar .cas-id {
+    font-size: 12px;
+    color: #9ca3af;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .patient-id-bar .cas-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    margin-top: 1px;
+  }
+  .patient-id-bar .cas-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-top: 3px;
+    display: flex;
+    gap: 10px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge-m { background: #1d4ed8; color: #bfdbfe; }
+  .badge-f { background: #be185d; color: #fce7f3; }
+  .badge-age { background: #374151; color: #d1d5db; }
+
+  /* ── Injuries block ── */
+  .injuries-block {
+    grid-column: 2;
+    grid-row: 1;
+    background: #2d3748;
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .block-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #f59e0b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .block-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #4b5563;
+  }
+  .injury-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .injury-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    font-size: 14px;
+    color: #e5e7eb;
+    line-height: 1.4;
+  }
+  .injury-list li .inj-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .inj-location {
+    font-size: 11px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* ── Info + Treatments (bottom row) ── */
+  .demo-block {
+    width: 100%;
+    background: #2d3748;
+    border-top: 1px solid #4b5563;
+  }
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #374151;
+    font-size: 14px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .info-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+  .info-row .info-label { color: #9ca3af; min-width: 90px; }
+  .info-row .info-val { color: #fff; font-weight: 600; }
+
+  /* ── Expected Treatment list ── */
+  .expect-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 0;
+  }
+  .expect-list li {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #374151;
+  }
+  .expect-list li:last-child { border-bottom: none; padding-bottom: 0; }
+  .expect-time {
+    flex-shrink: 0;
+    background: #1e3a5f;
+    color: #93c5fd;
+    border: 1px solid #3b82f6;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .expect-text { color: #e5e7eb; }
+
+  /* ── Treatments block ── */
+  .treatments-block {
+    grid-column: 1 / -1;
+    background: #2d3748;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ── Sub-tab bar inside treatments ── */
+  .sub-tab-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 10px;
+  }
+  .sub-tab {
+    background: #374151;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .sub-tab:hover { background: #4b5563; color: #e5e7eb; }
+  .sub-tab.active { background: #f59e0b; border-color: #f59e0b; color: #1f2937; }
+
+  .sub-panel { display: none; }
+  .sub-panel.active { display: block; }
+
+  /* ── Treatment items ── */
+  .treat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-top: 10px;
+  }
+  .treat-item {
+    background: #374151;
+    border: 1.5px solid #4b5563;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #d1d5db;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    line-height: 1.35;
+    cursor: default;
+    transition: background 0.12s;
+  }
+  .treat-item.active-treat {
+    background: #1e3a5f;
+    border-color: #3b82f6;
+    color: #bfdbfe;
+  }
+  .treat-item.inactive-treat {
+    background: #2a2f3a;
+    border-color: #374151;
+    color: #6b7280;
+    opacity: 0.65;
+  }
+  .treat-item .treat-check {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .treat-item.active-treat .treat-check { background: #3b82f6; color: #fff; }
+  .treat-item.inactive-treat .treat-check { background: #374151; color: #4b5563; border: 1px solid #4b5563; }
+
+  /* ── Vitals strip ── */
+  .vitals-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    background: #1e2330;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .vital-card {
+    background: #2d3748;
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #374151;
+  }
+  .vital-card .v-icon { font-size: 18px; }
+  .vital-card .v-label {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .vital-card .v-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f3f4f6;
+    margin-top: 3px;
+  }
+  .vital-card .v-unit {
+    font-size: 10px;
+    color: #9ca3af;
+  }
+
+  /* ── Status badge ── */
+
+  /* ── Responsive ── */
+  @media (max-width: 780px) {
+    .panel-grid { grid-template-columns: 1fr; }
+    .photo-block, .injuries-block, .treatments-block {
+      grid-column: 1; grid-row: auto;
+    }
+    .treat-grid { grid-template-columns: 1fr 1fr; }
+    .vitals-strip { grid-template-columns: repeat(3, 1fr); }
+    .injuries-block .vitals-strip { grid-template-columns: repeat(3, 1fr); }
+    .app-title { font-size: 17px; }
+  }
+  @media (max-width: 500px) {
+    .treat-grid { grid-template-columns: 1fr; }
+    .vitals-strip { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── Tooltip ── */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: #f3f4f6;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 99;
+    border: 1px solid #4b5563;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; color: #000; padding: 10px; }
+    .tab-bar { display: none; }
+    .patient-panel { display: block !important; border: 1px solid #ccc; margin-bottom: 40px; }
+    .icon-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- App Header -->
+<div class="app-header">
+  <img class="logo" src="presentations/extracted_media/ppt/media/logo.png" alt="Logo" onerror="this.style.display='none'">
+  <div class="app-title">MCI <span>Patient Summaries</span></div>
+  <div class="header-right">
+    <button class="icon-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">⛶</button>
+    <button class="icon-btn" title="Print / Export" onclick="window.print()">🖨</button>
+  </div>
+</div>
+
+<div>
+<!-- Tab Bar -->
+<div class="tab-bar" id="tab-bar">
+  <!-- generated by JS -->
+</div>
+
+<!-- Patient Panels -->
+<div id="panels-container">
+  <!-- generated by JS -->
+</div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════ */
+
+const PATIENTS = [
+  {
+    key: 'm01',
+    casNum: '3501',
+    name: 'Kevin',
+    gender: 'M',
+    age: 8,
+    imgFile: 'presentations/extracted_media/ppt/media/m01-Kevin.png',
+    triage: 'T1',
+    gcs: 'GCS 15',
+    evm: '(not avail.)',
+    injuries: [
+      { desc: 'Laceration (mild bleed)', location: 'Right forearm' },
+      { desc: 'Open fracture of left femur', location: 'Left thigh' },
+      { desc: 'Open fracture of left tibia', location: 'Left shin' },
+    ],
+    vitals: { hr: '95', bp: '100/60', rr: '30', spo2: '98%', temp: '37.0°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Wound dressing and crepe bandage of right forearm laceration. Wound dressing of open fractures of left femur and left tibia. Splinting and traction to left femur fracture. Splinting to left tibia fracture.' },
+      { time: '3 min', text: 'Recognize the need for IV blood transfusion and IV fluid resuscitation in lieu of risk of haemorrhagic shock.' },
+      { time: '4 min', text: 'Secure IV access – bilateral antecubital veins. If inserting IO access, IO needle must not be placed in the left lower limb.' },
+    ],
+  },
+  {
+    key: 'm02',
+    casNum: '3502',
+    name: 'Unknown',
+    gender: 'M',
+    age: 10,
+    imgFile: 'presentations/extracted_media/ppt/media/m02-unknown.png',
+    triage: 'T1',
+    gcs: 'GCS 11',
+    evm: 'E3V3M5',
+    injuries: [
+      { desc: 'Burn – full thickness', location: 'Right hand, forearm, elbow, arm' },
+      { desc: 'Burn – full thickness', location: 'Left hand, forearm, elbow, arm' },
+      { desc: 'Burn – partial thickness', location: 'Face and neck' },
+    ],
+    vitals: { hr: '140', bp: '90/50', rr: '30', spo2: '88%', temp: '37.1°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Supplemental oxygen. Emergency intubation required to secure airway.' },
+      { time: '5 min', text: 'Must decide by 5 min to perform emergency intubation required to secure airway.' },
+    ],
+  },
+  {
+    key: 'm03',
+    casNum: '3603',
+    name: 'Faizal',
+    gender: 'M',
+    age: 12,
+    imgFile: 'presentations/extracted_media/ppt/media/m03-Faizal.png',
+    triage: 'T1',
+    gcs: 'GCS 15',
+    evm: '(not avail.)',
+    injuries: [
+      { desc: 'Blunt chest trauma, pneumothorax', location: 'Right chest wall, anterolateral' },
+      { desc: 'Contusion', location: 'Right arm' },
+      { desc: 'Contusion', location: 'Abdominal wall, right upper quadrant' },
+    ],
+    vitals: { hr: '120', bp: '90/46', rr: '35', spo2: '82%', temp: '37.5°C' },
+    expectedTreatment: [
+      { time: '3 min', text: 'If tension pneumothorax develops, requires needle decompression or finger thoracostomy, followed by chest tube insertion.' },
+      { time: '4 min', text: 'Order a chest X-ray after insertion of right chest tube.' },
+    ],
+  },
+  {
+    key: 'm04',
+    casNum: '3604',
+    name: 'Lucas',
+    gender: 'M',
+    age: 11,
+    imgFile: 'presentations/extracted_media/ppt/media/m04-Lucas.png',
+    triage: 'T2',
+    gcs: 'GCS 15',
+    evm: '(not avail.)',
+    injuries: [
+      { desc: 'Blunt chest trauma, contusion', location: 'Right chest wall, anterolateral' },
+      { desc: 'Contusion', location: 'Right thigh' },
+      { desc: 'Closed fracture', location: 'Left shin (tibia)' },
+    ],
+    vitals: { hr: '90', bp: '97/49', rr: '30', spo2: '92%', temp: '37.0°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Supplemental oxygen by intra-nasal prongs or oxygen face mask. Chest tube insertion not required. ETT intubation not required.' },
+      { time: '2 min', text: 'Non-urgent splinting of left tibia closed fracture, e.g. backslab.' },
+      { time: '4 min', text: 'Analgesia.' },
+      { time: '10 min', text: 'IV Maintenance Fluid using IV D5% / 0.9% Normal saline.' },
+    ],
+  },
+  {
+    key: 'f01',
+    casNum: '4105',
+    name: 'Mabel',
+    gender: 'F',
+    age: 8,
+    imgFile: 'presentations/extracted_media/ppt/media/f01-Mabel.png',
+    triage: 'T1',
+    gcs: 'GCS 12',
+    evm: 'E3V4M5',
+    injuries: [
+      { desc: 'Blunt trauma to abdomen', location: 'Left upper quadrant' },
+      { desc: 'Pelvic fracture', location: 'Pelvic bone' },
+      { desc: 'Crush injury', location: 'Left thigh' },
+    ],
+    vitals: { hr: '130', bp: '84/43', rr: '22', spo2: '95%', temp: '37.2°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Early detection and treatment of haemorrhagic shock – intraperitoneal bleeding and pelvic fracture.' },
+      { time: '3 min', text: 'Early application of pelvic binder for pelvic fracture.' },
+      { time: '5 min', text: 'IV tranexamic acid (TXA) – dose: 15 mg/kg loading dose over 10 mins, followed by 2 mg/kg/hr infusion.' },
+      { time: '6 min', text: 'Emergency blood transfusion via MTP (massive transfusion protocol).' },
+    ],
+  },
+  {
+    key: 'f02',
+    casNum: '4136',
+    name: 'Unknown',
+    gender: 'F',
+    age: 11,
+    imgFile: 'presentations/extracted_media/ppt/media/f02-unknown.png',
+    triage: 'T1',
+    gcs: 'GCS 8',
+    evm: 'E2V2M4',
+    injuries: [
+      { desc: 'Closed fracture of right femur', location: 'Right thigh' },
+      { desc: 'Open fracture of right tibia', location: 'Right shin' },
+      { desc: 'Contusion of scalp / head injury', location: 'Forehead' },
+    ],
+    vitals: { hr: '110', bp: '110/70', rr: '22', spo2: '98%', temp: '37.3°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Recognition of significant head injury and potential TBI. Liaise with neurosurgeon for surgical intervention – clot evacuation.' },
+      { time: '1 min', text: 'Splint and traction to right femur closed fracture. Wound dressing and splint to right tibia open fracture.' },
+      { time: '3 min', text: 'Consider decision to intubate, in lieu of TBI and low GCS 8 → 6.' },
+    ],
+  },
+  {
+    key: 'f03',
+    casNum: '4227',
+    name: 'Priya',
+    gender: 'F',
+    age: 10,
+    imgFile: 'presentations/extracted_media/ppt/media/f03-Priya.png',
+    triage: 'T1',
+    gcs: 'GCS 15',
+    evm: '(not avail.)',
+    injuries: [
+      { desc: 'Flail chest, blunt chest trauma', location: 'Left chest wall' },
+      { desc: 'Crush injury', location: 'Left hand' },
+      { desc: 'Penetrating wound to leg', location: 'Right thigh' },
+    ],
+    vitals: { hr: '140', bp: '85/46', rr: '32', spo2: '84%', temp: '37.1°C' },
+    expectedTreatment: [
+      { time: '0 min', text: 'Impaled object (metal rebar rod) must NOT be removed in ED resus. Leave in situ, stabilize the rod for removal under direct visualization in OT.' },
+      { time: '1 min', text: 'If impaled rod is removed, severe bleeding must be controlled by pressure bandage or CAT tourniquet.' },
+      { time: '3 min', text: 'Requires ETT intubation and mechanical ventilation in lieu of left flail chest with pulmonary contusion of left lung.' },
+      { time: '5 min', text: 'Wound dressing and IM tetanus vaccine for left hand crush injury and penetrating wound of right thigh.' },
+    ],
+  },
+  {
+    key: 'f04',
+    casNum: '4508',
+    name: 'Jane',
+    gender: 'F',
+    age: 11,
+    imgFile: 'presentations/extracted_media/ppt/media/f04-Jane.png',
+    triage: 'T2',
+    gcs: 'GCS 15',
+    evm: '(not avail.)',
+    injuries: [
+      { desc: 'Contusion from blunt chest trauma', location: 'Left chest wall' },
+      { desc: 'Laceration', location: 'Left forearm' },
+      { desc: 'Laceration of leg', location: 'Right shin' },
+    ],
+    vitals: { hr: '110', bp: '97/42', rr: '24', spo2: '95%', temp: '37.1°C' },
+    expectedTreatment: [
+      { time: '2 min', text: 'Analgesia.' },
+      { time: '3 min', text: 'Supplemental oxygen, intranasal 4–6 L/min is adequate.' },
+      { time: 'Ongoing', text: 'Simple wound dressing and crepe bandage to wounds of left forearm and right shin.' },
+    ],
+  },
+];
+
+/* ── Treatment data matched from Treatments-New.csv ── */
+/* Columns order: m01, m02, m03, m04, f01, f02, f03, f04  */
+const TREATMENTS = {
+  m01: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)','IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Wound Dressing','SAM Splint','Traction Device','Cervical Collar','Toilet and Suture set','Crepe Bandage'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['Laryngoscope'],
+  },
+  m02: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Burns Dressing','Cervical Collar'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs','BVM Bag Valve Mask'],
+      'Intubation / Chest': ['Urinary catheter'],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['ETT','Laryngoscope'],
+  },
+  m03: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Cervical Collar'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': ['Chest Tube'],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['Laryngoscope'],
+  },
+  m04: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['SAM Splint','Cervical Collar'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs','BVM Bag Valve Mask'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['Laryngoscope'],
+  },
+  f01: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)','IO Intraosseous Needle','IV Tranexamic Acid','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['SAM Splint','Cervical Collar','Pelvic Binder','Traction Device'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['Laryngoscope'],
+  },
+  f02: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','IV Mannitol','IV Keppra','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Wound Dressing','SAM Splint','Traction Device','Cervical Collar'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray','CT Brain'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['ETT','Laryngoscope'],
+  },
+  f03: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','IM ATT tetanus vaccine','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Wound Dressing','Cervical Collar'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray','X ray arm'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['C-A-T Tourniquet','ETT','Laryngoscope'],
+  },
+  f04: {
+    va: {
+      'Vitals': ['BP Cuff','SpO2','Cardiac Monitoring'],
+      'IV / Injections': ['IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+      'Dressing / Splints': ['Wound Dressing','Cervical Collar','Crepe Bandage'],
+      'Supplemental O2': ['Non-rebreather','Nasal Prongs'],
+      'Intubation / Chest': [],
+      'Others': ['Blanket','Broselow Tape'],
+    },
+    diag: {
+      'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray'],
+      'Laboratory': ['Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood'],
+    },
+    bedside: ['POCUS / eFAST','Glucometer'],
+    tasks: ['Laryngoscope'],
+  },
+};
+
+/* All possible items per VA sub-category */
+const ALL_VA = {
+  'Vitals':               ['BP Cuff','SpO2','Cardiac Monitoring'],
+  'IV / Injections':      ['IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)','RSI Drugs (Rapid IV push)','IO Intraosseous Needle','IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','IV Tranexamic Acid','IV Mannitol','IV Keppra','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag'],
+  'Dressing / Splints':   ['Burns Dressing','Wound Dressing','SAM Splint','Traction Device','Cervical Collar','Pelvic Binder','Toilet and Suture set','Crepe Bandage'],
+  'Supplemental O2':      ['Non-rebreather','Nasal Prongs','BVM Bag Valve Mask'],
+  'Intubation / Chest':   ['NG Tube','Urinary catheter','Chest Tube'],
+  'Others':               ['Blanket','Broselow Tape'],
+};
+const ALL_DIAG = {
+  'Diagnostic Imaging': ['X-ray Chest (Erect/Supine/PA and Oblique)','CT Chest or Thorax','Pelvis X ray','CT Chest, Abdomen and Pelvis','Upper/Lower Leg X-ray','CT Abdomen and Pelvis','X ray arm','Cervical Spine X-ray, AP and Lat, Open Mouth','CT Brain','CR Cervical Spine'],
+  'Laboratory':         ['Full Blood Count','Pancreatic Amylase, serum','Renal Panel (U/E/BICARB/CLU/CRE), serum','Blood Gases (arterial, venous, capillary), blood','Liver Panel (TP/ALB/TBIL/ALP/ALT/AST/GGT), serum','APTT, PT & INR','Troponin-T, ng/L','PT & INR','Creatine Kinase, serum','Lactate, Plain blood'],
+};
+const ALL_BEDSIDE = ['POCUS / eFAST','Glucometer'];
+const ALL_TASKS   = ['C-A-T Tourniquet','ETT','Laryngoscope'];
+
+
+/* ════════════════════════════════════════════
+   RENDER
+════════════════════════════════════════════ */
+
+function escapeTip(s) { return s.replace(/"/g,'&quot;'); }
+
+function treatItem(label, activeList) {
+  const on = activeList.includes(label);
+  const cls = on ? 'treat-item active-treat' : 'treat-item inactive-treat';
+  const check = on ? '✓' : '–';
+  return `<div class="${cls}" data-tip="${escapeTip(label)}">
+    <span class="treat-check">${check}</span>
+    <span>${label}</span>
+  </div>`;
+}
+
+function subTabContent(allCats, activeCats, prefix, panelKey) {
+  const catKeys = Object.keys(allCats);
+  const tabs = catKeys.map((cat, i) =>
+    `<button class="sub-tab${i===0?' active':''}" onclick="switchSubTab('${prefix}','${panelKey}','${cat}')">${cat}</button>`
+  ).join('');
+
+  const panels = catKeys.map((cat, i) => {
+    const all    = allCats[cat];
+    const active = (activeCats[cat]) || [];
+    const grid   = all.map(lbl => treatItem(lbl, active)).join('');
+    return `<div class="sub-panel${i===0?' active':''}" id="${prefix}_${panelKey}_${cat.replace(/\W+/g,'_')}">${'<div class="treat-grid">' + grid + '</div>'}</div>`;
+  }).join('');
+
+  return `<div class="sub-tab-bar">${tabs}</div>${panels}`;
+}
+
+function buildPanel(p) {
+  const tx   = TREATMENTS[p.key];
+  const gBadge = p.gender === 'M'
+    ? '<span class="badge badge-m">♂ Male</span>'
+    : '<span class="badge badge-f">♀ Female</span>';
+  const ageBadge = `<span class="badge badge-age">🎂 ${p.age} yrs</span>`;
+
+  const injHTML = p.injuries.map(inj =>
+    `<li><span class="inj-dot"></span><span><strong>${inj.desc}</strong><span class="inj-location">${inj.location}</span></span></li>`
+  ).join('');
+
+  /* Vitals strip */
+  const vitals = p.vitals;
+  const vitalsHTML = `
+    <div class="vitals-strip">
+      <div class="vital-card" data-tip="Heart Rate"><div class="v-icon">❤</div><div class="v-label">HR</div><div class="v-value">${vitals.hr}</div><div class="v-unit">bpm</div></div>
+      <div class="vital-card" data-tip="Blood Pressure"><div class="v-icon">🩸</div><div class="v-label">BP</div><div class="v-value">${vitals.bp}</div><div class="v-unit">mmHg</div></div>
+      <div class="vital-card" data-tip="Respiratory Rate"><div class="v-icon">🌬</div><div class="v-label">RR</div><div class="v-value">${vitals.rr}</div><div class="v-unit">/min</div></div>
+      <div class="vital-card" data-tip="SpO₂"><div class="v-icon">🫁</div><div class="v-label">SpO₂</div><div class="v-value">${vitals.spo2}</div><div class="v-unit">&nbsp;</div></div>
+      <div class="vital-card" data-tip="Temperature"><div class="v-icon">🌡</div><div class="v-label">Temp</div><div class="v-value">${vitals.temp}</div><div class="v-unit">&nbsp;</div></div>
+    </div>`;
+
+  /* Treatments sub-sections */
+  const vaSubTabs   = subTabContent(ALL_VA,      tx.va,   'va',   p.key);
+  const diagSubTabs = subTabContent(ALL_DIAG,    tx.diag, 'diag', p.key);
+  const bsGrid      = ALL_BEDSIDE.map(lbl => treatItem(lbl, tx.bedside)).join('');
+  const taskGrid    = ALL_TASKS.map(lbl => treatItem(lbl, tx.tasks)).join('');
+
+  /* Main treatment tabs */
+  const treatTabsHTML = `
+    <div class="sub-tab-bar" id="treat-tabs-${p.key}">
+      <button class="sub-tab active" onclick="switchTreatTab('${p.key}','virtual')">Virtual Actions</button>
+      <button class="sub-tab"        onclick="switchTreatTab('${p.key}','diag')">Diagnostics</button>
+      <button class="sub-tab"        onclick="switchTreatTab('${p.key}','bedside')">Bedside PoC</button>
+      <button class="sub-tab"        onclick="switchTreatTab('${p.key}','tasks')">Task Trainers</button>
+    </div>
+    <div id="treat-virtual-${p.key}" class="sub-panel active">${vaSubTabs}</div>
+    <div id="treat-diag-${p.key}"    class="sub-panel">${diagSubTabs}</div>
+    <div id="treat-bedside-${p.key}" class="sub-panel"><div class="treat-grid">${bsGrid}</div></div>
+    <div id="treat-tasks-${p.key}"   class="sub-panel"><div class="treat-grid">${taskGrid}</div></div>
+  `;
+
+  return `
+  <div class="patient-panel${p === PATIENTS[0] ? ' active' : ''}" id="panel-${p.key}">
+
+    <div class="panel-grid">
+      <!-- Photo + Casualty + Demographics -->
+      <div class="photo-block">
+        <img src="${p.imgFile}" alt="${p.name}" onerror="this.outerHTML='<div class=&quot;photo-placeholder&quot;>${p.gender === 'M' ? '👦' : '👧'}</div>'">
+        <div class="patient-id-bar">
+          <div class="cas-id">🆔 Casualty ${p.casNum}</div>
+          <div class="cas-name">${p.name === 'Unknown' ? '❓ Unknown' : p.name}</div>
+        </div>
+        <div class="demo-block">
+          <div class="info-row" style="margin:12px 14px 0;"><span class="info-icon">⚧</span><span class="info-label">Gender</span><span class="info-val">${p.gender === 'M' ? 'Male' : 'Female'}</span></div>
+          <div class="info-row" style="margin:0 14px;"><span class="info-icon">🎂</span><span class="info-label">Age</span><span class="info-val">${p.age} years</span></div>
+          <div class="info-row" style="margin:0 14px;"><span class="info-icon">⚖</span><span class="info-label">Est. Weight</span><span class="info-val">${Math.round(p.age * 2 + 8)} kg (est.)</span></div>
+          <div class="info-row" style="margin:0 14px;"><span class="info-icon">🧠</span><span class="info-label">GCS</span><span class="info-val">${p.gcs}</span></div>
+          <div class="info-row" style="margin:0 14px 12px;"><span class="info-icon">👁</span><span class="info-label">E/V/M</span><span class="info-val">${p.evm}</span></div>
+        </div>
+      </div>
+
+      <!-- Injuries + Expected Treatment + Vitals -->
+      <div class="injuries-block">
+        <div class="block-title">🩺 Injuries / Diagnosis</div>
+        <ul class="injury-list">${injHTML}</ul>
+        <div class="block-title" style="margin-top:16px;">📋 Expected Treatment</div>
+        <ol class="expect-list">
+          ${p.expectedTreatment.map(item => `<li><span class="expect-time">${item.time}</span><span class="expect-text">${item.text}</span></li>`).join('')}
+        </ol>
+        <div class="block-title" style="margin-top:16px;">🩺 Vital Signs <small style="color:#9ca3af;font-weight:400;font-size:10px;letter-spacing:0;">(Time Zero)</small></div>
+        ${vitalsHTML}
+      </div>
+
+      <!-- Treatments -->
+      <div class="treatments-block">
+        <div class="block-title">💊 Treatments &amp; Actions</div>
+        ${treatTabsHTML}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════
+   TAB SWITCHING
+════════════════════════════════════════════ */
+
+function showPatient(key) {
+  document.querySelectorAll('.patient-panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('panel-' + key).classList.add('active');
+  document.getElementById('tabBtn-' + key).classList.add('active');
+}
+
+function switchTreatTab(patKey, tab) {
+  const tabs  = ['virtual','diag','bedside','tasks'];
+  const tabEl = document.getElementById('treat-tabs-' + patKey);
+  if (!tabEl) return;
+  tabEl.querySelectorAll('.sub-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  tabs.forEach(t => {
+    const p = document.getElementById(`treat-${t}-${patKey}`);
+    if (p) p.classList.toggle('active', t === tab);
+  });
+}
+
+function switchSubTab(prefix, patKey, cat) {
+  const panelId = `${prefix}_${patKey}_${cat.replace(/\W+/g,'_')}`;
+  const target = document.getElementById(panelId);
+  if (!target) return;
+  // The structure is: [sub-tab-bar] [sub-panel] [sub-panel] ...
+  // All are direct children of the same parent wrapper
+  const parent = target.parentElement;
+  // Deactivate all sibling sub-panels and activate the target
+  parent.querySelectorAll(':scope > .sub-panel').forEach(el => el.classList.remove('active'));
+  target.classList.add('active');
+  // Update the sub-tab-bar that is a direct child of parent (first child)
+  const bar = parent.querySelector(':scope > .sub-tab-bar');
+  if (bar) {
+    bar.querySelectorAll('.sub-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === cat);
+    });
+  }
+}
+
+/* ════════════════════════════════════════════
+   FULLSCREEN
+════════════════════════════════════════════ */
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+
+(function init() {
+  const tabBar  = document.getElementById('tab-bar');
+  const panelEl = document.getElementById('panels-container');
+
+  PATIENTS.forEach(p => {
+    // Tab button
+    const gClass = p.gender.toLowerCase();
+    const displayName = p.name === 'Unknown' ? `❓ ${p.casNum}` : p.name;
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (p === PATIENTS[0] ? ' active' : '');
+    btn.id = 'tabBtn-' + p.key;
+    btn.innerHTML = `<span class="gender-dot ${gClass}"></span>${displayName} <small style="color:#9ca3af;font-weight:400;">${p.casNum}</small>`;
+    btn.onclick = () => showPatient(p.key);
+    tabBar.appendChild(btn);
+
+    // Panel
+    panelEl.insertAdjacentHTML('beforeend', buildPanel(p));
+  });
+})();
+</script>
+
+</body>
+</html>
