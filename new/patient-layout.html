@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Layout</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1e2330;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 18px 12px 64px;
+    color: #e5e7eb;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0 4px;
+  }
+  .app-header img.logo {
+    height: 44px;
+    object-fit: contain;
+  }
+  .app-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .app-title span { color: #f59e0b; }
+
+  .icon-btn {
+    background: #374151;
+    border: 1.5px solid #4b5563;
+    border-radius: 8px;
+    color: #d1d5db;
+    font-size: 13px;
+    font-weight: 700;
+    height: 36px;
+    padding: 0 12px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .icon-btn:hover { background: #4b5563; color: #fff; }
+
+  /* ── Main content row: room + collapsible panel ── */
+  #content-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  /* ── Room wrapper: image + overlays ── */
+  #room-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .room-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    font-size: 0;
+  }
+  .room-wrap > img.bg {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 130px);
+    border-radius: 12px;
+    border: 1.5px solid #4b5563;
+  }
+
+  /* ── Patient GIF overlaid exactly on a bed ── */
+  .bed-gif {
+    position: absolute;
+    object-fit: fill;
+    pointer-events: none;
+  }
+
+  /* ── Clickable bed overlay (transparent hit-area) ── */
+  .bed-link {
+    position: absolute;
+    display: block;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 6px;
+    text-decoration: none;
+    background: transparent;
+    transition: box-shadow 0.15s, background 0.15s;
+  }
+  .bed-link:hover {
+    background: rgba(251,191,36,0.08);
+    box-shadow: 0 0 0 2px #f59e0b;
+  }
+  .bed-link:hover ~ .bed-label .pname {
+    text-decoration: underline;
+  }
+
+  /* ── Med-tag + name label, left of the bed ── */
+  .bed-label {
+    position: absolute;
+    transform: translate(-100%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    pointer-events: none;
+    padding-right: 5px;
+  }
+  .bed-label .pname {
+    font-size: clamp(9px, 1.3vw, 13px);
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 4px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+  .bed-label .tag {
+    font-size: clamp(8px, 1.1vw, 11px);
+    font-weight: 700;
+    color: #fff;
+    background: rgba(30,35,48,0.82);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-align: right;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bed-label .pmeta {
+    font-size: clamp(7px, 1vw, 10px);
+    color: #d1d5db;
+    background: rgba(30,35,48,0.78);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* Med-tag colour coding */
+  .tag-T1      { background: #dc2626; color: #fff; }
+  .tag-T2      { background: #d97706; color: #fff; }
+  .tag-T3      { background: #16a34a; color: #fff; }
+  .tag-T4      { background: #374151; color: #9ca3af; border: 1px solid #4b5563; }
+  .tag-default { background: #1e3a5f; color: #93c5fd; border: 1px solid #3b82f6; }
+
+  /* Empty bed label */
+  .bed-label.empty .tag {
+    background: rgba(55,65,81,0.7);
+    color: #6b7280;
+    border: 1px dashed #4b5563;
+  }
+  .bed-label.empty .pname,
+  .bed-label.empty .pmeta { display: none; }
+
+  /* ── No-data notice ── */
+  .no-data {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #6b7280;
+    font-style: italic;
+  }
+
+  /* ═══════════════════════════════════════════
+     SESSION INFO PANEL (collapsible, right side)
+  ═══════════════════════════════════════════ */
+  #session-panel {
+    flex: 0 0 auto;
+    width: 260px;
+    background: #1f2937;
+    border: 1.5px solid #374151;
+    border-radius: 12px;
+    overflow: hidden;
+    align-self: flex-start;
+  }
+
+  #panel-header {
+    background: #374151;
+    border-bottom: 1.5px solid #4b5563;
+    color: #d1d5db;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 10px;
+    letter-spacing: 0.5px;
+  }
+
+  #panel-body {
+    padding: 12px 12px 14px;
+  }
+
+  .info-section {
+    margin-bottom: 14px;
+  }
+  .info-section:last-child { margin-bottom: 0; }
+
+  .info-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #f59e0b;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #374151;
+  }
+
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 8px;
+  }
+  .info-row:last-child { margin-bottom: 0; }
+  .info-row .info-key {
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-row .info-val {
+    font-size: 12px;
+    color: #e5e7eb;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 20px;
+  }
+  .status-active   { background: #14532d; color: #86efac; }
+  .status-ended,
+  .status-completed,
+  .status-finished { background: #1e3a5f; color: #93c5fd; }
+  .status-inactive { background: #374151; color: #9ca3af; }
+  .status-unknown  { background: #292524; color: #a8a29e; }
+
+  /* Participant list */
+  .participant-item {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 7px 8px;
+    margin-bottom: 6px;
+  }
+  .participant-item:last-child { margin-bottom: 0; }
+  .participant-name {
+    font-weight: 700;
+    color: #e5e7eb;
+    margin-bottom: 5px;
+    font-size: 12px;
+  }
+  .participant-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+    font-size: 10px;
+  }
+  .participant-field:last-child { margin-bottom: 0; }
+  .participant-field .pf-key {
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .participant-field .pf-val {
+    color: #d1d5db;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .no-participants {
+    font-size: 11px;
+    color: #4b5563;
+    font-style: italic;
+  }
+
+  /* ── Bottom nav ── */
+  #bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: #1f2937;
+    border-top: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 9998;
+  }
+  #bottom-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #374151;
+    border: 1.5px solid #6b7280;
+    border-radius: 10px;
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 14px;
+    height: 32px;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+  }
+  #bottom-nav .nav-link:hover { background: #4b5563; color: #fff; }
+  #bottom-nav .nav-link .nav-icon {
+    width: 22px; height: 22px;
+    background: #6b7280;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #bottom-nav .nav-link .nav-icon svg { fill: #fff; }
+  #fullscreen-btn {
+    background: #374151;
+    color: #f3f4f6;
+    border: 1.5px solid #6b7280;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #fullscreen-btn:hover { background: #4b5563; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <a href="index.html" title="Back to Main Menu">
+    <img class="logo" src="Pics/logo.png" alt="Logo" onerror="this.style.display='none'">
+  </a>
+  <div class="app-title">Patient <span>Layout</span></div>
+  <a class="icon-btn" href="MCI-sessions.html" title="Back to Sessions">Return to Sessions</a>
+</div>
+
+<!-- Main row: room image left, session info panel right -->
+<div id="content-row">
+
+  <!-- Room: background image + overlays injected by JS -->
+  <div id="room-outer">
+    <div class="room-wrap" id="room-wrap">
+      <img id="room-img" class="bg" src="Pics/6-patient-beds_top-view.png" alt="6 Patient Beds – Top View">
+      <!-- GIF and label overlays injected by JS -->
+    </div>
+    <div class="no-data" id="no-data" style="display:none;">No patient data received. Open this page from a session card.</div>
+  </div>
+
+  <!-- Session info panel -->
+  <div id="session-panel">
+    <div id="panel-header">Session Info</div>
+    <div id="panel-body">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+</div><!-- #content-row -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   BED GEOMETRY in source-image pixels (1366 × 768)
+   Each bed: left, top, right, bottom edges (px in source)
+
+   Measured precisely per bed:
+     Row 1 (head at top):
+       Bed 1: L=355  R=487  T=28   B=362
+       Bed 2: L=617  R=749  T=28   B=362
+       Bed 3: L=879  R=1011 T=28   B=362
+     Row 2 (head at bottom):
+       Bed 4: L=355  R=490  T=406  B=742
+       Bed 5: L=617  R=752  T=406  B=742
+       Bed 6: L=879  R=1014 T=406  B=742
+════════════════════════════════════════════════════════ */
+const SRC_W = 1366, SRC_H = 768;
+const BED_LAYOUT = [
+  { l: 355, t:  28, r:  487, b: 362 }, // bed 1
+  { l: 617, t:  28, r:  749, b: 362 }, // bed 2
+  { l: 879, t:  28, r: 1011, b: 362 }, // bed 3
+  { l: 355, t: 406, r:  490, b: 742 }, // bed 4
+  { l: 617, t: 406, r:  752, b: 742 }, // bed 5
+  { l: 879, t: 406, r: 1014, b: 742 }, // bed 6
+];
+
+/* Derive the GIF path from casualtyId.
+   e.g. "m01" / "M01" → Pics/M01_TopBody.gif */
+function gifPath(casualtyId) {
+  if (!casualtyId) return null;
+  const m = String(casualtyId).trim().match(/^([mMfF])(\d+)$/);
+  if (!m) return null;
+  return `Pics/${m[1].toUpperCase()}${m[2].padStart(2,'0')}_TopBody.gif`;
+}
+
+function tagClass(medTag) {
+  const t = String(medTag).trim().toUpperCase();
+  if (t === 'T1' || t === 'IMMEDIATE' || t === 'RED')    return 'tag-T1';
+  if (t === 'T2' || t === 'DELAYED'   || t === 'YELLOW') return 'tag-T2';
+  if (t === 'T3' || t === 'MINOR'     || t === 'GREEN')  return 'tag-T3';
+  if (t === 'T4' || t === 'EXPECTANT' || t === 'BLACK')  return 'tag-T4';
+  return 'tag-default';
+}
+
+/* Convert a source-image px value to rendered px using the live scale ratio */
+function scaleX(px, rW) { return px * rW / SRC_W; }
+function scaleY(px, rH) { return px * rH / SRC_H; }
+
+let _patients = [];
+
+function renderOverlays(patients) {
+  _patients = patients;
+  const wrap = document.getElementById('room-wrap');
+  const img  = document.getElementById('room-img');
+
+  // Use actual rendered image dimensions (not container dimensions)
+  const rW = img.offsetWidth;
+  const rH = img.offsetHeight;
+  if (!rW || !rH) return; // image not painted yet — onload will retry
+
+  // Clear previous overlays
+  wrap.querySelectorAll('.bed-gif, .bed-label, .bed-link').forEach(el => el.remove());
+
+  BED_LAYOUT.forEach((bed, i) => {
+    const p = patients[i] || null;
+
+    // Pixel positions in rendered space
+    const left   = scaleX(bed.l, rW);
+    const top    = scaleY(bed.t, rH);
+    const width  = scaleX(bed.r - bed.l, rW);
+    const height = scaleY(bed.b - bed.t, rH);
+
+    /* ── 1. GIF overlay: absolute px, covers the bed exactly ── */
+    if (p && p.casualtyId) {
+      const src = gifPath(p.casualtyId);
+      if (src) {
+        const gif = document.createElement('img');
+        gif.className = 'bed-gif';
+        gif.src = src;
+        gif.alt = p.name || '';
+        gif.style.left   = left   + 'px';
+        gif.style.top    = top    + 'px';
+        gif.style.width  = width  + 'px';
+        gif.style.height = height + 'px';
+        wrap.appendChild(gif);
+      }
+
+      /* ── Clickable hit-area over the bed → dashboard tab ── */
+      const key = String(p.casualtyId).trim().toLowerCase();
+      const link = document.createElement('a');
+      link.className = 'bed-link';
+      link.href = 'dashboard.html?patient=' + encodeURIComponent(key);
+      link.title = 'View ' + (p.name || key) + ' in Dashboard';
+      link.style.left   = left   + 'px';
+      link.style.top    = top    + 'px';
+      link.style.width  = width  + 'px';
+      link.style.height = height + 'px';
+      wrap.appendChild(link);
+    }
+
+    /* ── 2. Tag + name label, anchored at left-centre of bed ── */
+    const label = document.createElement('div');
+    label.className = 'bed-label' + (p ? '' : ' empty');
+    label.style.left = left + 'px';
+    label.style.top  = (top + height / 2) + 'px';
+
+    if (p) {
+      // 1. Name
+      const nameEl = document.createElement('div');
+      nameEl.className = 'pname';
+      nameEl.textContent = p.name || '—';
+      label.appendChild(nameEl);
+
+      // 2. Med tag
+      const tagEl = document.createElement('div');
+      tagEl.className = 'tag ' + tagClass(p.medTag);
+      tagEl.textContent = p.medTag || '—';
+      label.appendChild(tagEl);
+
+      // 3. Wave ID in parentheses
+      if (p.waveId != null && p.waveId !== '') {
+        const waveEl = document.createElement('div');
+        waveEl.className = 'pmeta';
+        waveEl.textContent = '(Wave: ' + p.waveId + ')';
+        label.appendChild(waveEl);
+      }
+    } else {
+      const tagEl = document.createElement('div');
+      tagEl.className = 'tag tag-T4';
+      tagEl.textContent = 'Empty';
+      label.appendChild(tagEl);
+    }
+    wrap.appendChild(label);
+  });
+}
+
+/* Re-render on window resize so px positions stay correct */
+window.addEventListener('resize', () => renderOverlays(_patients));
+
+/* ═══════════════════════════════════════════
+   SESSION INFO PANEL
+═══════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return iso; }
+}
+
+function statusBadge(status) {
+  const s = String(status || 'unknown').toLowerCase();
+  const cls = ['active','ended','completed','finished','inactive'].includes(s) ? 'status-' + s : 'status-unknown';
+  return `<span class="status-badge ${cls}">${escHtml(status || 'unknown')}</span>`;
+}
+
+function renderSessionPanel(session) {
+  const body = document.getElementById('panel-body');
+  if (!session) {
+    body.innerHTML = '<p class="no-participants">No session data available.</p>';
+    return;
+  }
+
+  const participants = Array.isArray(session.participants) ? session.participants : [];
+
+  function pField(key, val) {
+    if (val == null || val === '' || val === '—') return '';
+    return `<div class="participant-field">
+      <span class="pf-key">${escHtml(key)}</span>
+      <span class="pf-val">${escHtml(String(val))}</span>
+    </div>`;
+  }
+
+  let participantsHtml = '';
+  if (participants.length === 0) {
+    participantsHtml = '<p class="no-participants">No participants recorded.</p>';
+  } else {
+    participantsHtml = participants.map((p, idx) => {
+      if (typeof p === 'string') {
+        return `<div class="participant-item"><div class="participant-name">${escHtml(p)}</div></div>`;
+      }
+      const firstName   = p.firstName   || p.firstname   || p.first_name  || '';
+      const lastName    = p.lastName    || p.lastname    || p.last_name   || '';
+      const fullName    = [firstName, lastName].filter(Boolean).join(' ')
+                         || p.name || p.username || p.displayName || `Participant ${idx + 1}`;
+      const traineeIdNo = p.traineeIdNo || p.traineeId   || p.traineeidno || p.trainee_id || '';
+      const role        = p.role        || p.type        || '';
+      return `
+        <div class="participant-item">
+          <div class="participant-name">${escHtml(fullName)}</div>
+          ${pField('Trainee ID', traineeIdNo)}
+          ${pField('First Name', firstName)}
+          ${pField('Last Name',  lastName)}
+          ${pField('Role',       role)}
+        </div>`;
+    }).join('');
+  }
+
+  body.innerHTML = `
+    <div class="info-section">
+      <div class="info-section-title">Session</div>
+      <div class="info-row">
+        <span class="info-key">ID</span>
+        <span class="info-val">${escHtml(session.id || '—')}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Status</span>
+        <span class="info-val">${statusBadge(session.status)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Scenario</span>
+        <span class="info-val">${escHtml(session.scenarioTitle || '—')}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Scheduled</span>
+        <span class="info-val">${escHtml(formatDate(session.scheduledAt))}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Ended</span>
+        <span class="info-val">${escHtml(formatDate(session.endAt))}</span>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Participants (${participants.length})</div>
+      ${participantsHtml}
+    </div>`;
+}
+
+/* ── Load data from sessionStorage ── */
+window.addEventListener('DOMContentLoaded', () => {
+  // --- Session metadata ---
+  try {
+    const rawSession = sessionStorage.getItem('roomSession');
+    renderSessionPanel(rawSession ? JSON.parse(rawSession) : null);
+  } catch (e) {
+    renderSessionPanel(null);
+  }
+
+  // --- Patient overlays ---
+  const raw = sessionStorage.getItem('roomPatients');
+  if (!raw) {
+    document.getElementById('no-data').style.display = 'block';
+    document.getElementById('room-img').addEventListener('load', () => renderOverlays([]));
+    renderOverlays([]);
+    return;
+  }
+  try {
+    const patients = JSON.parse(raw);
+    const img = document.getElementById('room-img');
+    if (img.complete) {
+      renderOverlays(patients);
+    } else {
+      img.addEventListener('load', () => renderOverlays(patients));
+    }
+  } catch (e) {
+    document.getElementById('no-data').style.display = 'block';
+    renderOverlays([]);
+  }
+});
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+}
+</script>
+
+<div id="bottom-nav">
+  <a class="nav-link" href="index.html" title="Open Triage Menu">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </span>
+    Menu
+  </a>
+  <a class="nav-link" href="dashboard.html" title="Open Patient Dashboard">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    </span>
+    Dashboard
+  </a>
+  <a class="nav-link" href="MCI-sessions.html" title="Open MCI Sessions">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    </span>
+    Sessions
+  </a>
+  <button id="fullscreen-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+</div>
+
+</body>
+</html>

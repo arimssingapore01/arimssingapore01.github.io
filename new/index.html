@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCI Menu</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #6b7280;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 20px 64px;
+  }
+
+  /* ── Card shell ── */
+  .card {
+    background: #4b5563;
+    border-radius: 20px;
+    width: 900px;
+    min-height: 600px;
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 14px 18px 6px 18px;
+    min-height: 70px;
+  }
+  .topbar-left {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+  .topbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .topbar-center .pat-id {
+    font-size: 15px;
+    color: #e5e7eb;
+  }
+  .topbar-center .pat-name {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0;
+  }
+  .nav-btn .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-btn .icon svg { fill: #fff; }
+  .nav-btn span {
+    font-size: 18px;
+    color: #d1d5db;
+  }
+
+  .minimize-btn {
+    background: #9ca3af;
+    border: none;
+    border-radius: 3px;
+    width: 22px;
+    height: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin-top: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #374151;
+    line-height: 1;
+    padding-bottom: 1px;
+  }
+  /* ── Restore button (shown after minimise) ── */
+  #restore-btn {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #374151;
+    color: #f3f4f6;
+    border: 2px solid #6b7280;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: 9999;
+  }
+  #restore-btn:hover { background: #4b5563; }
+
+  /* ── Bottom navigation bar ── */
+  #bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: #1f2937;
+    border-top: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 9998;
+  }
+  #bottom-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #374151;
+    border: 1.5px solid #6b7280;
+    border-radius: 10px;
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 14px;
+    height: 32px;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+  }
+  #bottom-nav .nav-link:hover { background: #4b5563; color: #fff; }
+  #bottom-nav .nav-link .nav-icon {
+    width: 22px; height: 22px;
+    background: #6b7280;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #bottom-nav .nav-link .nav-icon svg { fill: #fff; }
+  #fullscreen-btn {
+    background: #374151;
+    color: #f3f4f6;
+    border: 1.5px solid #6b7280;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #fullscreen-btn:hover { background: #4b5563; }
+
+  /* ── Page visibility ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Patient List page ── */
+  #page-patients .subtitle {
+    text-align: center;
+    color: #f59e0b;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 6px 0 16px;
+  }
+  .patient-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 0 20px 24px;
+  }
+  .patient-btn {
+    background: #374151;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-height: 80px;
+    transition: background 0.15s;
+  }
+  .patient-btn:hover { background: #4b5563; }
+  .patient-btn.empty { cursor: default; background: #374151; opacity: 0.5; }
+  .patient-btn .pat-icon {
+    width: 28px; height: 28px;
+    background: #6b7280; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .patient-btn .pat-icon svg { fill: #d1d5db; }
+  .patient-btn .pat-info { text-align: left; }
+  .patient-btn .pat-info .pid { font-size: 16px; color: #d1d5db; }
+  .patient-btn .pat-info .pname { font-size: 20px; font-weight: 700; color: #fff; }
+  .patient-btn .pat-gender {
+    margin-left: auto;
+    font-size: 16px; font-weight: 700; color: #d1d5db;
+  }
+
+  /* ── Title-only topbar for list page ── */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 4px;
+  }
+  .title-bar .title-text {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 20px; font-weight: 700; color: #fff;
+  }
+
+  /* ── Patient Hub page ── */
+  .hub-body { padding: 14px 20px 22px; }
+  .hub-main-btns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .hub-btn {
+    background: #374151;
+    border: 2px solid #6b7280;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    padding: 16px 8px;
+    cursor: pointer;
+    line-height: 1.3;
+    transition: background 0.15s;
+  }
+  .hub-btn:hover { background: #4b5563; }
+
+  .task-section-label {
+    text-align: center;
+    color: #f59e0b;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .hub-task-btns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .task-btn {
+    background: #f59e0b;
+    border: none;
+    border-radius: 12px;
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    padding: 18px 8px;
+    cursor: pointer;
+    line-height: 1.3;
+    transition: background 0.15s;
+  }
+  .task-btn:hover { background: #d97706; }
+
+  /* ── Two-panel layout for Virtual Actions / Diagnostics / Bedside ── */
+  .two-panel {
+    display: flex;
+    min-height: 340px;
+  }
+  .left-panel {
+    width: 160px;
+    flex-shrink: 0;
+    padding: 10px 12px 16px;
+    border-right: 1px solid #6b7280;
+  }
+  .left-panel .section-title {
+    color: #f59e0b;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .left-tab {
+    background: #374151;
+    border: none;
+    border-radius: 10px;
+    color: #d1d5db;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    padding: 13px 10px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 6px;
+    line-height: 1.6;
+    transition: background 0.15s;
+  }
+  .left-tab:hover { background: #4b5563; }
+  .left-tab.active {
+    background: #fff;
+    color: #1f2937;
+  }
+
+  .right-panel {
+    flex: 1;
+    padding: 14px 16px 16px;
+  }
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .action-btn {
+    background: #374151;
+    border: 1.5px solid #6b7280;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: left;
+    padding: 13px 14px 22px;
+    cursor: pointer;
+    position: relative;
+    line-height: 1.3;
+    transition: background 0.15s;
+    min-height: 60px;
+  }
+  .action-btn:hover { background: #4b5563; }
+  .action-btn .qty {
+    position: absolute;
+    bottom: 6px; right: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f59e0b;
+  }
+
+  /* ── Transfer page ── */
+  #page-transfer .card-inner {
+    padding: 30px 28px 22px;
+    text-align: center;
+  }
+  #page-transfer .transfer-label {
+    font-size: 18px; color: #d1d5db; margin-bottom: 4px;
+  }
+  #page-transfer .transfer-name {
+    font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 28px;
+  }
+  .transfer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .transfer-btn {
+    background: #374151;
+    border: 1.5px solid #6b7280;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 22px 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .transfer-btn:hover { background: #4b5563; }
+  .cancel-link {
+    background: none; border: none;
+    color: #d1d5db;
+    font-size: 16px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .cancel-link:hover { color: #fff; }
+
+  /* ── Task Trainer modal overlay ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #4b5563;
+    border-radius: 18px;
+    padding: 32px 40px 28px;
+    text-align: center;
+    min-width: 280px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .modal-box .modal-title {
+    font-size: 18px; color: #d1d5db; margin-bottom: 6px;
+  }
+  .modal-box .modal-patient {
+    font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 18px;
+  }
+  .modal-box .modal-msg {
+    font-size: 16px; color: #f59e0b; font-weight: 600; margin-bottom: 28px;
+  }
+  .modal-cancel {
+    background: none; border: none;
+    color: #d1d5db; font-size: 16px;
+    text-decoration: underline; cursor: pointer;
+  }
+  .modal-cancel:hover { color: #fff; }
+
+  /* ── Bedside PoC ── */
+  .bedside-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-content: start;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Patient List  (00.png)
+═══════════════════════════════════════════ -->
+<div class="card page active" id="page-patients">
+  <div class="title-bar" style="position:relative;">
+    <div style="width:30px;"></div>
+    <div class="title-text">Pri Doctor</div>
+    <button class="minimize-btn" title="Minimize" onclick="minimisePage(this)">_</button>
+  </div>
+  <div class="subtitle">Select a patient</div>
+  <div class="patient-grid">
+    <!-- Row 1 -->
+    <button class="patient-btn" onclick="openPatient('m01')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">3501</div>
+        <div class="pname">Kevin</div>
+      </div>
+      <div class="pat-gender">M</div>
+    </button>
+    <button class="patient-btn" onclick="openPatient('f01')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">4105</div>
+        <div class="pname">Mabel</div>
+      </div>
+      <div class="pat-gender">F</div>
+    </button>
+    <button class="patient-btn" onclick="openPatient('f02')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">4136</div>
+        <div class="pname">Unknown</div>
+      </div>
+      <div class="pat-gender">F</div>
+    </button>
+    <!-- Row 2 -->
+    <button class="patient-btn" onclick="openPatient('m02')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">3502</div>
+        <div class="pname">Unknown</div>
+      </div>
+      <div class="pat-gender">M</div>
+    </button>
+    <button class="patient-btn" onclick="openPatient('m03')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">3603</div>
+        <div class="pname">Faizal</div>
+      </div>
+      <div class="pat-gender">M</div>
+    </button>
+    <button class="patient-btn" onclick="openPatient('m04')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">3604</div>
+        <div class="pname">Lucas</div>
+      </div>
+      <div class="pat-gender">M</div>
+    </button>
+    <!-- Row 3 -->
+    <button class="patient-btn" onclick="openPatient('f03')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">4227</div>
+        <div class="pname">Priya</div>
+      </div>
+      <div class="pat-gender">F</div>
+    </button>
+    <button class="patient-btn" onclick="openPatient('f04')">
+      <div class="pat-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="pat-info">
+        <div class="pid">4508</div>
+        <div class="pname">Jane</div>
+      </div>
+      <div class="pat-gender">F</div>
+    </button>
+    <!-- Row 3 – empty slot -->
+    <button class="patient-btn empty"></button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Patient Hub  (00-00_Kevin.png)
+═══════════════════════════════════════════ -->
+<div class="card page" id="page-hub">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="nav-btn" onclick="goTo('page-patients')" title="Back to Patients">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <span>Patients</span>
+      </button>
+    </div>
+    <div class="topbar-center">
+      <div class="pat-id" id="hub-pid"></div>
+      <div class="pat-name" id="hub-pname"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="minimize-btn" title="Minimize" onclick="minimisePage(this)">_</button>
+    </div>
+  </div>
+  <div class="hub-body">
+    <div class="hub-main-btns">
+      <button class="hub-btn" onclick="goToVirtualActions()">Virtual<br>Actions</button>
+      <button class="hub-btn" onclick="goToBedside()">Bedside<br>PoC</button>
+      <button class="hub-btn" onclick="goToDiagnostics()">Diagnostics</button>
+      <button class="hub-btn" onclick="goToTransfer()">Transfer<br>Patient</button>
+    </div>
+    <div class="task-section-label">— TASK TRAINERS —</div>
+    <div class="hub-task-btns">
+      <button class="task-btn" id="task-cat"        onclick="openModal('C-A-T Tourniquet')">C-A-T<br>Tourniquet</button>
+      <button class="task-btn" id="task-ett"        onclick="openModal('ETT')">ETT</button>
+      <button class="task-btn" id="task-laryngo"    onclick="openModal('Laryngoscope')">Laryngoscope</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Virtual Actions  (00-01-xx)
+═══════════════════════════════════════════ -->
+<div class="card page" id="page-actions">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="nav-btn" onclick="goTo('page-patients')" title="Patients">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <span>Patients</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('page-hub')" title="Activities">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.4-1.4L12 14.2l7.6-7.6L21 8l-9 9z"/></svg>
+        </div>
+        <span>Activities</span>
+      </button>
+    </div>
+    <div class="topbar-center">
+      <div class="pat-id" id="act-pid"></div>
+      <div class="pat-name" id="act-pname"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="minimize-btn" title="Minimize" onclick="minimisePage(this)">_</button>
+    </div>
+  </div>
+  <div class="two-panel">
+    <div class="left-panel">
+      <div class="section-title">Virtual Actions</div>
+      <button class="left-tab active" id="tab-vitals"      onclick="switchTab('vitals')">Vitals</button>
+      <button class="left-tab"        id="tab-iv"          onclick="switchTab('iv')">IV / Injections</button>
+      <button class="left-tab"        id="tab-dressing"    onclick="switchTab('dressing')">Dressing /<br>Splints</button>
+      <button class="left-tab"        id="tab-supp"        onclick="switchTab('supp')">Supplemental<br>O2</button>
+      <button class="left-tab"        id="tab-intubation"  onclick="switchTab('intubation')">Intubation /<br>Chest Tube</button>
+      <button class="left-tab"        id="tab-others"      onclick="switchTab('others')">Others</button>
+    </div>
+    <div class="right-panel" id="actions-content">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Bedside PoC  (00-02)
+═══════════════════════════════════════════ -->
+<div class="card page" id="page-bedside">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="nav-btn" onclick="goTo('page-patients')" title="Patients">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <span>Patients</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('page-hub')" title="Activities">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.4-1.4L12 14.2l7.6-7.6L21 8l-9 9z"/></svg>
+        </div>
+        <span>Activities</span>
+      </button>
+    </div>
+    <div class="topbar-center">
+      <div class="pat-id" id="bed-pid"></div>
+      <div class="pat-name" id="bed-pname"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="minimize-btn" title="Minimize" onclick="minimisePage(this)">_</button>
+    </div>
+  </div>
+  <div class="two-panel">
+    <div class="left-panel">
+      <div class="section-title">Bedside PoC</div>
+    </div>
+    <div class="right-panel" id="bedside-content">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Diagnostics  (00-03-xx)
+═══════════════════════════════════════════ -->
+<div class="card page" id="page-diagnostics">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="nav-btn" onclick="goTo('page-patients')" title="Patients">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <span>Patients</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('page-hub')" title="Activities">
+        <div class="icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.4-1.4L12 14.2l7.6-7.6L21 8l-9 9z"/></svg>
+        </div>
+        <span>Activities</span>
+      </button>
+    </div>
+    <div class="topbar-center">
+      <div class="pat-id" id="diag-pid"></div>
+      <div class="pat-name" id="diag-pname"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="minimize-btn" title="Minimize" onclick="minimisePage(this)">_</button>
+    </div>
+  </div>
+  <div class="two-panel">
+    <div class="left-panel">
+      <div class="section-title">Diagnostics</div>
+      <button class="left-tab active" id="dtab-imaging" onclick="switchDiagTab('imaging')">Diagnostic<br>Imaging</button>
+      <button class="left-tab"        id="dtab-lab"     onclick="switchDiagTab('lab')">Laboratory</button>
+    </div>
+    <div class="right-panel" id="diagnostics-content">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: Transfer Patient  (00-04)
+═══════════════════════════════════════════ -->
+<div class="card page" id="page-transfer" style="min-height:260px;">
+  <div class="card-inner">
+    <div class="transfer-label">Transfer</div>
+    <div class="transfer-name" id="transfer-name"></div>
+    <div class="transfer-grid">
+      <button class="transfer-btn" onclick="confirmTransfer('ICU')">ICU</button>
+      <button class="transfer-btn" onclick="confirmTransfer('OR')">OR</button>
+      <button class="transfer-btn" onclick="confirmTransfer('General Ward')">General Ward</button>
+      <button class="transfer-btn" onclick="confirmTransfer('HighD')">HighD</button>
+    </div>
+    <button class="cancel-link" onclick="goTo('page-hub')">Cancel transfer</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL: Task Trainer  (00-07)
+═══════════════════════════════════════════ -->
+<!-- Restore button — visible when a page is minimised -->
+<button id="restore-btn" title="Restore" onclick="restorePage()">...</button>
+
+<!-- Bottom navigation bar -->
+<div id="bottom-nav">
+  <a class="nav-link" href="dashboard.html" title="Open Patient Dashboard">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    </span>
+    Dashboard
+  </a>
+  <a class="nav-link" href="patient-layout.html" title="Open Patient Layout">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M21 3H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm-1 16H4V5h16v14zM6 7h5v5H6zm7 0h5v2h-5zm0 4h5v2h-5zM6 14h12v3H6z"/></svg>
+    </span>
+    Layout
+  </a>
+  <a class="nav-link" href="MCI-sessions.html" title="Open MCI Sessions">
+    <span class="nav-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    </span>
+    Sessions
+  </a>
+  <button id="fullscreen-btn" title="Toggle Fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+</div>
+
+<div class="modal-overlay" id="task-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-task-title"></div>
+    <div class="modal-patient" id="modal-patient-name"></div>
+    <div class="modal-msg">Wait for the Assessor to start.</div>
+    <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     JavaScript
+═══════════════════════════════════════════ -->
+<script>
+  /* ── Patient data ── */
+  const PATIENTS = {
+    m01: { id: '3501', name: 'KEVIN',   gender: 'M' },
+    f01: { id: '4105', name: 'MABEL',   gender: 'F' },
+    f02: { id: '4136', name: 'UNKNOWN', gender: 'F' },
+    m02: { id: '3502', name: 'UNKNOWN', gender: 'M' },
+    m03: { id: '3603', name: 'Faizal',  gender: 'M' },
+    m04: { id: '3604', name: 'Lucas',   gender: 'M' },
+    f03: { id: '4227', name: 'Priya',   gender: 'F' },
+    f04: { id: '4508', name: 'Jane',    gender: 'F' },
+  };
+  let currentPatient = 'm01';
+
+  /* ── Navigation ── */
+  function goTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+  }
+
+  /* ── Minimise / Restore ── */
+  let _minimisedPageId = null;
+
+  function minimisePage(btn) {
+    // Find the parent .page or .card element that contains this button
+    const page = btn.closest('.page');
+    if (!page) return;
+    _minimisedPageId = page.id;
+    page.classList.remove('active');
+    document.getElementById('restore-btn').style.display = 'block';
+  }
+
+  function restorePage() {
+    if (_minimisedPageId) {
+      document.getElementById(_minimisedPageId).classList.add('active');
+      _minimisedPageId = null;
+    }
+    document.getElementById('restore-btn').style.display = 'none';
+  }
+
+  /* ── Fullscreen toggle ── */
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function openPatient(patientKey) {
+    currentPatient = patientKey;
+    const p = PATIENTS[patientKey];
+    setPatientHeader('hub-pid', 'hub-pname', p);
+    renderTaskBtns();
+    goTo('page-hub');
+  }
+
+  function setPatientHeader(pidId, pnameId, p) {
+    document.getElementById(pidId).textContent = p.id;
+    document.getElementById(pnameId).textContent = p.name;
+  }
+
+  function syncHeaders() {
+    const p = PATIENTS[currentPatient];
+    ['act','bed','diag'].forEach(prefix => {
+      setPatientHeader(prefix + '-pid', prefix + '-pname', p);
+    });
+    document.getElementById('transfer-name').textContent = p.id + ' ' + p.name[0] + p.name.slice(1).toLowerCase();
+  }
+
+  /* ── Hub navigation ── */
+  function goToVirtualActions() {
+    syncHeaders();
+    switchTab('vitals');
+    goTo('page-actions');
+  }
+  function goToBedside() {
+    syncHeaders();
+    renderBedsideGrid();
+    goTo('page-bedside');
+  }
+  function goToDiagnostics() {
+    syncHeaders();
+    switchDiagTab('imaging');
+    goTo('page-diagnostics');
+  }
+  function goToTransfer() {
+    syncHeaders();
+    goTo('page-transfer');
+  }
+
+
+  /* ── Task Trainer button styling ── */
+  function renderTaskBtns() {
+    const taskList = (TREATMENTS[currentPatient] || {}).tasks || [];
+    const map = {
+      'task-cat':    'C-A-T Tourniquet',
+      'task-ett':    'ETT',
+      'task-laryngo':'Laryngoscope',
+    };
+    Object.entries(map).forEach(([id, name]) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const active = taskList.includes(name);
+      btn.style.background    = active ? '' : '#6b7280';
+      btn.style.color         = active ? '' : '#d1d5db';
+      btn.style.cursor        = active ? '' : 'default';
+      btn.onclick             = active ? () => openModal(name) : null;
+    });
+  }
+
+
+  /* ── Treatment data (from Treatments-New.csv) ── */
+  // Columns: Activities, Category, Treatment, Initial Inventory, then Y/NR per patient
+  // Patient order: m01(3501), m02(3502), m03(3603), m04(3604), f01(4105), f02(4136), f03(4227), f04(4508)
+  // Each key maps to { va: [...], diag: [...], bedside: [...] }
+  // Matched buttons → bold text; unmatched → light grey background
+
+  /*
+  -- all values for keys (Y for at least one patient) --
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring','IV cannula',"Hartmann's Sol",'Blood (Packed Cells)',
+                'Analgesia (Rapid IV push)','RSI Drugs (Rapid IV push)','IO Intraosseous Needle',
+                'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','IV Tranexamic Acid',
+                'IV Mannitol','IV Keppra','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Burns Dressing','Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Pelvic Binder','Toilet and Suture set','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Urinary catheter','Chest Tube','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','CT Chest or Thorax','Pelvis X ray',
+                'CT Chest, Abdomen and Pelvis','Upper/Lower Leg X-ray','CT Abdomen and Pelvis',
+                'X ray arm','Cervical Spine X-ray, AP and Lat, Open Mouth','CT Brain','CR Cervical Spine',
+                'Full Blood Count','Pancreatic Amylase, serum','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood',
+                'Liver Panel (TP/ALB/TBIL/ALP/ALT/AST/GGT), serum','APTT, PT & INR',
+                'Troponin-T, ng/L','PT & INR','Creatine Kinase, serum','Lactate, Plain blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+  */
+
+  const TREATMENTS = {
+    m01: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Toilet and Suture set','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
+    },
+    m02: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Burns Dressing','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Urinary catheter','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['ETT','Laryngoscope'],
+    },
+    m03: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Cervical Collar','Non-rebreather','Nasal Prongs',
+                'Chest Tube','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
+    },
+    m04: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'SAM Splint','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
+                'Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
+    },
+    f01: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IO Intraosseous Needle','IV Tranexamic Acid',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'SAM Splint','Cervical Collar','Pelvic Binder','Traction Device',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
+    },
+    f02: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IV Mannitol','IV Keppra',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'CT Brain',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['ETT','Laryngoscope'],
+    },
+    f03: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IM ATT tetanus vaccine',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','Cervical Collar',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
+                'X ray arm',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['C-A-T Tourniquet','ETT','Laryngoscope'],
+    },
+    f04: {
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring',
+                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'Wound Dressing','Cervical Collar','Crepe Bandage',
+                'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
+      diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
+                'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
+                'Blood Gases (arterial, venous, capillary), blood'],
+      bedside: ['POCUS / eFAST','Glucometer'],
+      tasks:   ['Laryngoscope'],
+    },
+  };
+
+  // Returns true if button label matches any treatment string (case-insensitive substring)
+  function isTreatmentMatch(label, list) {
+    if (!list || list.length === 0) return false;
+    const lbl = label.toLowerCase();
+    return list.some(t => lbl.includes(t.toLowerCase()) || t.toLowerCase().includes(lbl));
+  }
+
+  /* ── Bedside PoC buttons ── */
+  const BEDSIDE_ITEMS = ['POCUS / eFAST', 'Glucometer'];
+
+  function renderBedsideGrid() {
+    const bedList = (TREATMENTS[currentPatient] || {}).bedside || [];
+    const hasData = bedList.length > 0;
+    const html = '<div class="bedside-right">' +
+      BEDSIDE_ITEMS.map(label => {
+        const match = isTreatmentMatch(label, bedList);
+        const style = hasData && !match
+          ? ' style="background:#6b7280;color:#d1d5db;border-color:#6b7280;"'
+          : '';
+        const weight = match ? ' style="font-weight:800;"' : '';
+        return `<button class="action-btn"${style}><span${weight}>${label}</span></button>`;
+      }).join('') +
+      '</div>';
+    document.getElementById('bedside-content').innerHTML = html;
+  }
+
+  /* ── Virtual Actions tab data ── */
+  const ACTIONS = {
+    vitals: [
+      { label: 'BP Cuff',           qty: 'Inf' },
+      { label: 'SpO2',              qty: 'Inf' },
+      { label: 'Cardiac Monitoring',qty: 'Inf' },
+    ],
+    iv: [
+      { label: 'IV cannula',                   qty: '100' },
+      { label: "Hartmann's Sol",               qty: '200' },
+      { label: 'Blood (Packed Cells)',          qty: '20'  },
+      { label: 'Analgesia (Rapid IV push)',     qty: 'Inf' },
+      { label: 'RSI Drugs (Rapid IV Push)',     qty: '100' },
+      { label: 'IO Intraosseous Needle',        qty: '50'  },
+      { label: 'IV Cefazolin (antibiotics)',    qty: '100' },
+      { label: 'IM ATT tetanus vaccine',        qty: '100' },
+      { label: 'IV Tranexamic Acid',            qty: 'Inf' },
+      { label: 'IV Mannitol',                   qty: 'Inf' },
+      { label: 'IV Keppra',                     qty: 'Inf' },
+      { label: '3% Hypertonic Saline',          qty: '200' },
+      { label: 'Fresh Frozen Plasma',           qty: '20'  },
+      { label: 'Platelets IV bag',              qty: '20'  },
+    ],
+    dressing: [
+      { label: 'Burns Dressing',      qty: '100' },
+      { label: 'Wound Dressing',      qty: '200' },
+      { label: 'SAM Splint',          qty: '50'  },
+      { label: 'Traction Device',     qty: '50'  },
+      { label: 'Cervical Collar',     qty: 'Inf' },
+      { label: 'Pelvic Binder',       qty: '20'  },
+      { label: 'Toilet and Suture set',qty:'200' },
+      { label: 'Crepe Bandage',       qty: '20'  },
+    ],
+    supp: [
+      { label: 'Non-rebreather',     qty: 'Inf' },
+      { label: 'Nasal Prongs',       qty: 'Inf' },
+      { label: 'BVM Bag Valve Mask', qty: '100' },
+    ],
+    intubation: [
+      { label: 'NG Tube',          qty: 'Inf' },
+      { label: 'Urinary catheter', qty: '200' },
+      { label: 'Chest Tube',       qty: '200' },
+    ],
+    others: [
+      { label: 'Blanket',        qty: 'Inf' },
+      { label: 'Broselow Tape',  qty: 'Inf' },
+    ],
+  };
+
+  function renderActionGrid(items) {
+    const vaList = (TREATMENTS[currentPatient] || {}).va || [];
+    const hasData = vaList.length > 0;
+    return '<div class="action-grid">' +
+      items.map(item => {
+        const match = isTreatmentMatch(item.label, vaList);
+        const style = hasData && !match
+          ? ' style="background:#6b7280;color:#d1d5db;border-color:#6b7280;"'
+          : '';
+        const weight = match ? ' style="font-weight:800;"' : '';
+        return `<button class="action-btn"${style}><span${weight}>${item.label}</span><span class="qty">${item.qty}</span></button>`;
+      }).join('') +
+      '</div>';
+  }
+
+  const TAB_IDS = ['vitals','iv','dressing','supp','intubation','others'];
+  const TAB_MAP = { vitals:'tab-vitals', iv:'tab-iv', dressing:'tab-dressing',
+                    supp:'tab-supp', intubation:'tab-intubation', others:'tab-others' };
+
+  function switchTab(tabKey) {
+    TAB_IDS.forEach(k => {
+      const el = document.getElementById(TAB_MAP[k]);
+      if (el) el.classList.toggle('active', k === tabKey);
+    });
+    document.getElementById('actions-content').innerHTML = renderActionGrid(ACTIONS[tabKey]);
+  }
+
+  /* ── Diagnostics tab data ── */
+  const DIAG = {
+    imaging: [
+      { label: 'X-ray Chest (Erect/Supine/PA and Oblique)', qty: null },
+      { label: 'CT Chest or Thorax',                        qty: null },
+      { label: 'Pelvis X ray',                              qty: null },
+      { label: 'CT Chest, Abdomen and Pelvis',              qty: null },
+      { label: 'Upper/Lower Leg X-ray',                     qty: null },
+      { label: 'CT Abdomen and Pelvis',                     qty: null },
+      { label: 'X ray arm',                                 qty: null },
+      { label: 'Cervical Spine X-ray, AP and Lat, Open Mouth', qty: null },
+      { label: 'CT Brain',                                  qty: null },
+      { label: 'CR Cervical Spine',                         qty: null },
+    ],
+    lab: [
+      { label: 'Full Blood Count',                                       qty: null },
+      { label: 'Pancreatic Amylase, serum',                              qty: null },
+      { label: 'Renal Panel (U/E/BICARB/CLU/CRE), serum',               qty: null },
+      { label: 'Blood Gases (arterial, venous, capillary), blood',       qty: null },
+      { label: 'Liver Panel (TP/ALB/TBIL/ALP/ALT/AST/GGT), serum',      qty: null },
+      { label: 'APTT, PT & INR',                                         qty: null },
+      { label: 'Troponin-T, ng/L',                                       qty: null },
+      { label: 'PT & INR',                                               qty: null },
+      { label: 'Creatine Kinase, serum',                                 qty: null },
+      { label: 'Lactate, Plain blood',                                   qty: null },
+    ],
+  };
+
+  function renderDiagGrid(items) {
+    const diagList = (TREATMENTS[currentPatient] || {}).diag || [];
+    const hasData = diagList.length > 0;
+    return '<div class="action-grid">' +
+      items.map(item => {
+        const match = isTreatmentMatch(item.label, diagList);
+        const btnStyle = hasData && !match
+          ? 'background:#6b7280;color:#d1d5db;border-color:#6b7280;padding-bottom:13px;'
+          : 'padding-bottom:13px;';
+        const weight = match ? ' style="font-weight:800;"' : '';
+        return `<button class="action-btn" style="${btnStyle}"><span${weight}>${item.label}</span></button>`;
+      }).join('') +
+      '</div>';
+  }
+
+  function switchDiagTab(tabKey) {
+    ['imaging','lab'].forEach(k => {
+      document.getElementById('dtab-' + k).classList.toggle('active', k === tabKey);
+    });
+    document.getElementById('diagnostics-content').innerHTML = renderDiagGrid(DIAG[tabKey]);
+  }
+
+  /* ── Transfer ── */
+  function confirmTransfer(destination) {
+    const p = PATIENTS[currentPatient];
+    alert('Patient ' + p.id + ' ' + p.name[0] + p.name.slice(1).toLowerCase() +
+          ' transferred to ' + destination + '.');
+    goTo('page-patients');
+  }
+
+  /* ── Task Trainer modal ── */
+  function openModal(taskName) {
+    const p = PATIENTS[currentPatient];
+    document.getElementById('modal-task-title').textContent = taskName;
+    document.getElementById('modal-patient-name').textContent = p.id + ' ' + p.name[0] + p.name.slice(1).toLowerCase();
+    document.getElementById('task-modal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('task-modal').classList.remove('open');
+  }
+
+  /* ── Init ── */
+  renderTaskBtns();
+  switchTab('vitals');
+  switchDiagTab('imaging');
+</script>
+</body>
+</html>
