@@ -21,7 +21,7 @@
   /* ── Header ── */
   .app-header {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1400px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -58,47 +58,89 @@
   }
   .icon-btn:hover { background: #4b5563; color: #fff; }
 
-  /* ── Main content row: room + collapsible panel ── */
+  /* ── Main content row: room + info panel ── */
   #content-row {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    justify-content: center;
+    gap: 4px;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1400px;
   }
 
-  /* ── Room wrapper: image + overlays ── */
+  /* ── Room outer ── */
   #room-outer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .room-wrap {
-    position: relative;
-    display: inline-block;
-    max-width: 100%;
-    font-size: 0;
-  }
-  .room-wrap > img.bg {
-    display: block;
-    max-width: 100%;
-    max-height: calc(100vh - 130px);
-    border-radius: 12px;
-    border: 1.5px solid #4b5563;
+    flex: 0 0 auto;
+    width: 24.5vw;
+    max-width: 340px;
   }
 
-  /* ── Patient GIF overlaid exactly on a bed ── */
-  .bed-gif {
-    position: absolute;
+  /* ── 4×2 bed grid — 70% of available width (30% reduction) ── */
+  #room-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+    column-gap: 10px;
+    row-gap: 61px;
+    width: 100%;
+    background: #111827;
+    border-radius: 12px;
+    border: 1.5px solid #4b5563;
+    padding: 12px 12px calc(12px + 61px);
+  }
+
+  /* ── Individual bed cell ── */
+  .bed-cell {
+    position: relative;
+    border-radius: 8px;
+    overflow: visible;
+    background: #1e2330;
+    border: 1px solid #374151;
+    /* Maintain bed aspect ratio (350 × 854) */
+    aspect-ratio: 350 / 854;
+  }
+  .bed-cell > img.bed-bg {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: fill;
     pointer-events: none;
   }
 
-  /* ── Clickable bed overlay (transparent hit-area) ── */
+  /* Bed number badge — top-right corner */
+  .bed-num {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    font-size: clamp(8px, 1vw, 11px);
+    font-weight: 800;
+    color: #fff;
+    background: rgba(30,35,48,0.82);
+    padding: 1px 5px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 5;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Patient GIF overlaid on the bed cell ── */
+  .bed-gif {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* ── Clickable transparent hit-area ── */
   .bed-link {
     position: absolute;
+    inset: 0;
     display: block;
     cursor: pointer;
     z-index: 10;
@@ -109,55 +151,61 @@
   }
   .bed-link:hover {
     background: rgba(251,191,36,0.08);
-    box-shadow: 0 0 0 2px #f59e0b;
-  }
-  .bed-link:hover ~ .bed-label .pname {
-    text-decoration: underline;
+    box-shadow: inset 0 0 0 2px #f59e0b;
   }
 
-  /* ── Med-tag + name label, left of the bed ── */
+  /* ── Patient info label — sits just below the bed cell, in the walkway ── */
   .bed-label {
     position: absolute;
-    transform: translate(-100%, -50%);
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
+    align-items: center;
+    gap: 2px;
     pointer-events: none;
-    padding-right: 5px;
+    padding: 0 3px;
+    z-index: 6;
   }
   .bed-label .pname {
-    font-size: clamp(9px, 1.3vw, 13px);
+    font-size: clamp(8px, 1.1vw, 12px);
     font-weight: 900;
-    padding: 2px 8px;
+    padding: 1px 6px;
     border-radius: 4px;
     line-height: 1.2;
     text-align: center;
     white-space: nowrap;
     letter-spacing: 0.5px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .bed-label .tag {
-    font-size: clamp(8px, 1.1vw, 11px);
+    font-size: clamp(7px, 0.9vw, 10px);
     font-weight: 700;
     color: #fff;
-    background: rgba(30,35,48,0.82);
-    padding: 1px 6px;
+    background: rgba(30,35,48,0.88);
+    padding: 1px 5px;
     border-radius: 4px;
     white-space: nowrap;
-    text-align: right;
-    max-width: 120px;
+    text-align: center;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .bed-label .pmeta {
-    font-size: clamp(7px, 1vw, 10px);
+    font-size: clamp(6px, 0.8vw, 9px);
     color: #d1d5db;
-    background: rgba(30,35,48,0.78);
-    padding: 1px 6px;
-    border-radius: 4px;
+    background: rgba(30,35,48,0.80);
+    padding: 0 5px;
+    border-radius: 3px;
     white-space: nowrap;
-    text-align: right;
+    text-align: center;
     line-height: 1.4;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Med-tag colour coding */
@@ -185,11 +233,11 @@
   }
 
   /* ═══════════════════════════════════════════
-     SESSION INFO PANEL (collapsible, right side)
+     SESSION INFO PANEL (right side)
   ═══════════════════════════════════════════ */
   #session-panel {
     flex: 0 0 auto;
-    width: 260px;
+    width: 312px;
     background: #1f2937;
     border: 1.5px solid #374151;
     border-radius: 12px;
@@ -374,14 +422,38 @@
   <a class="icon-btn" href="MCI-sessions.html" title="Back to Sessions">Return to Sessions</a>
 </div>
 
-<!-- Main row: room image left, session info panel right -->
+<!-- Main row: bed grid left, session info panel right -->
 <div id="content-row">
 
-  <!-- Room: background image + overlays injected by JS -->
+  <!-- 4×2 bed grid -->
   <div id="room-outer">
-    <div class="room-wrap" id="room-wrap">
-      <img id="room-img" class="bg" src="Pics/6-patient-beds_top-view.png" alt="6 Patient Beds – Top View">
-      <!-- GIF and label overlays injected by JS -->
+    <div id="room-grid">
+      <!-- Row 1: bed-01 … bed-03 -->
+      <div class="bed-cell" id="bed-01">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 01">
+        <span class="bed-num">01</span>
+      </div>
+      <div class="bed-cell" id="bed-02">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 02">
+        <span class="bed-num">02</span>
+      </div>
+      <div class="bed-cell" id="bed-03">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 03">
+        <span class="bed-num">03</span>
+      </div>
+      <!-- Row 2: bed-04 … bed-06 -->
+      <div class="bed-cell" id="bed-04">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 04">
+        <span class="bed-num">04</span>
+      </div>
+      <div class="bed-cell" id="bed-05">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 05">
+        <span class="bed-num">05</span>
+      </div>
+      <div class="bed-cell" id="bed-06">
+        <img class="bed-bg" src="Pics/1-patient-bed_top-view.gif" alt="Bed 06">
+        <span class="bed-num">06</span>
+      </div>
     </div>
     <div class="no-data" id="no-data" style="display:none;">No patient data received. Open this page from a session card.</div>
   </div>
@@ -398,30 +470,13 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════
-   BED GEOMETRY in source-image pixels (1366 × 768)
-   Each bed: left, top, right, bottom edges (px in source)
-
-   Measured precisely per bed:
-     Row 1 (head at top):
-       Bed 1: L=355  R=487  T=28   B=362
-       Bed 2: L=617  R=749  T=28   B=362
-       Bed 3: L=879  R=1011 T=28   B=362
-     Row 2 (head at bottom):
-       Bed 4: L=355  R=490  T=406  B=742
-       Bed 5: L=617  R=752  T=406  B=742
-       Bed 6: L=879  R=1014 T=406  B=742
+   BED CELLS — 6 cells, IDs bed-01 … bed-06
+   Overlays are injected directly into each .bed-cell
+   (no source-image pixel math needed — each cell IS the bed)
 ════════════════════════════════════════════════════════ */
-const SRC_W = 1366, SRC_H = 768;
-const BED_LAYOUT = [
-  { l: 355, t:  28, r:  487, b: 362 }, // bed 1
-  { l: 617, t:  28, r:  749, b: 362 }, // bed 2
-  { l: 879, t:  28, r: 1011, b: 362 }, // bed 3
-  { l: 355, t: 406, r:  490, b: 742 }, // bed 4
-  { l: 617, t: 406, r:  752, b: 742 }, // bed 5
-  { l: 879, t: 406, r: 1014, b: 742 }, // bed 6
-];
+const BED_IDS = ['bed-01','bed-02','bed-03','bed-04','bed-05','bed-06','bed-07','bed-08'];
 
-/* Derive the GIF path from casualtyId.
+/* Derive the patient GIF path from casualtyId.
    e.g. "m01" / "M01" → Pics/M01_TopBody.gif */
 function gifPath(casualtyId) {
   if (!casualtyId) return null;
@@ -439,35 +494,21 @@ function tagClass(medTag) {
   return 'tag-default';
 }
 
-/* Convert a source-image px value to rendered px using the live scale ratio */
-function scaleX(px, rW) { return px * rW / SRC_W; }
-function scaleY(px, rH) { return px * rH / SRC_H; }
-
 let _patients = [];
 
 function renderOverlays(patients) {
   _patients = patients;
-  const wrap = document.getElementById('room-wrap');
-  const img  = document.getElementById('room-img');
 
-  // Use actual rendered image dimensions (not container dimensions)
-  const rW = img.offsetWidth;
-  const rH = img.offsetHeight;
-  if (!rW || !rH) return; // image not painted yet — onload will retry
+  BED_IDS.forEach((bedId, i) => {
+    const cell = document.getElementById(bedId);
+    if (!cell) return;
 
-  // Clear previous overlays
-  wrap.querySelectorAll('.bed-gif, .bed-label, .bed-link').forEach(el => el.remove());
+    // Remove any previously injected overlays (keep .bed-bg and .bed-num)
+    cell.querySelectorAll('.bed-gif, .bed-link, .bed-label').forEach(el => el.remove());
 
-  BED_LAYOUT.forEach((bed, i) => {
     const p = patients[i] || null;
 
-    // Pixel positions in rendered space
-    const left   = scaleX(bed.l, rW);
-    const top    = scaleY(bed.t, rH);
-    const width  = scaleX(bed.r - bed.l, rW);
-    const height = scaleY(bed.b - bed.t, rH);
-
-    /* ── 1. GIF overlay: absolute px, covers the bed exactly ── */
+    /* ── 1. Patient GIF — fills the whole cell ── */
     if (p && p.casualtyId) {
       const src = gifPath(p.casualtyId);
       if (src) {
@@ -475,46 +516,33 @@ function renderOverlays(patients) {
         gif.className = 'bed-gif';
         gif.src = src;
         gif.alt = p.name || '';
-        gif.style.left   = left   + 'px';
-        gif.style.top    = top    + 'px';
-        gif.style.width  = width  + 'px';
-        gif.style.height = height + 'px';
-        wrap.appendChild(gif);
+        cell.appendChild(gif);
       }
 
-      /* ── Clickable hit-area over the bed → dashboard tab ── */
+      /* ── 2. Clickable hit-area → dashboard tab ── */
       const key = String(p.casualtyId).trim().toLowerCase();
       const link = document.createElement('a');
       link.className = 'bed-link';
       link.href = 'dashboard.html?patient=' + encodeURIComponent(key);
       link.title = 'View ' + (p.name || key) + ' in Dashboard';
-      link.style.left   = left   + 'px';
-      link.style.top    = top    + 'px';
-      link.style.width  = width  + 'px';
-      link.style.height = height + 'px';
-      wrap.appendChild(link);
+      cell.appendChild(link);
     }
 
-    /* ── 2. Tag + name label, anchored at left-centre of bed ── */
+    /* ── 3. Name / med-tag / wave label at the bottom of the cell ── */
     const label = document.createElement('div');
     label.className = 'bed-label' + (p ? '' : ' empty');
-    label.style.left = left + 'px';
-    label.style.top  = (top + height / 2) + 'px';
 
     if (p) {
-      // 1. Name
       const nameEl = document.createElement('div');
       nameEl.className = 'pname';
       nameEl.textContent = p.name || '—';
       label.appendChild(nameEl);
 
-      // 2. Med tag
       const tagEl = document.createElement('div');
       tagEl.className = 'tag ' + tagClass(p.medTag);
       tagEl.textContent = p.medTag || '—';
       label.appendChild(tagEl);
 
-      // 3. Wave ID in parentheses
       if (p.waveId != null && p.waveId !== '') {
         const waveEl = document.createElement('div');
         waveEl.className = 'pmeta';
@@ -527,12 +555,9 @@ function renderOverlays(patients) {
       tagEl.textContent = 'Empty';
       label.appendChild(tagEl);
     }
-    wrap.appendChild(label);
+    cell.appendChild(label);
   });
 }
-
-/* Re-render on window resize so px positions stay correct */
-window.addEventListener('resize', () => renderOverlays(_patients));
 
 /* ═══════════════════════════════════════════
    SESSION INFO PANEL
@@ -644,18 +669,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const raw = sessionStorage.getItem('roomPatients');
   if (!raw) {
     document.getElementById('no-data').style.display = 'block';
-    document.getElementById('room-img').addEventListener('load', () => renderOverlays([]));
     renderOverlays([]);
     return;
   }
   try {
     const patients = JSON.parse(raw);
-    const img = document.getElementById('room-img');
-    if (img.complete) {
-      renderOverlays(patients);
-    } else {
-      img.addEventListener('load', () => renderOverlays(patients));
-    }
+    renderOverlays(patients);
   } catch (e) {
     document.getElementById('no-data').style.display = 'block';
     renderOverlays([]);
