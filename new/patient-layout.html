@@ -68,27 +68,27 @@
     max-width: 1400px;
   }
 
-  /* ── Room outer — 50% of the page ── */
+  /* ── Room outer — 40% of the page (50vw × 0.80) ── */
   #room-outer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 0 0 50vw;
-    width: 50vw;
+    flex: 0 0 40vw;
+    width: 40vw;
   }
 
-  /* ── 3×2 bed grid — fills #room-outer (40.46% of page) ── */
+  /* ── 3×2 bed grid — fills #room-outer (40vw) ── */
   #room-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, auto);
-    column-gap: 10px;
-    row-gap: 50px;
+    column-gap: 8px;
+    row-gap: 40px;
     width: 100%;
     background: #111827;
     border-radius: 12px;
     border: 1.5px solid #4b5563;
-    padding: 6px 6px calc(6px + 85px);
+    padding: 5px 5px calc(5px + 68px);
   }
 
   /* ── Individual bed cell ── */
