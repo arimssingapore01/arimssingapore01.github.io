@@ -63,33 +63,32 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     width: 100%;
     max-width: 1400px;
   }
 
-  /* ── Room outer ── */
+  /* ── Room outer — 25.29% of content-row (29.75% × 0.85) ── */
   #room-outer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 0 0 auto;
-    width: 24.5vw;
-    max-width: 340px;
+    flex: 0 0 25.29%;
+    width: 25.29%;
   }
 
-  /* ── 4×2 bed grid — 70% of available width (30% reduction) ── */
+  /* ── 3×2 bed grid — fills #room-outer (25.29% of page) ── */
   #room-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, auto);
-    column-gap: 10px;
-    row-gap: 61px;
+    column-gap: 17px;
+    row-gap: 90px;
     width: 100%;
     background: #111827;
     border-radius: 12px;
     border: 1.5px solid #4b5563;
-    padding: 12px 12px calc(12px + 61px);
+    padding: 4px 4px calc(4px + 53px);
   }
 
   /* ── Individual bed cell ── */
@@ -236,8 +235,8 @@
      SESSION INFO PANEL (right side)
   ═══════════════════════════════════════════ */
   #session-panel {
-    flex: 0 0 auto;
-    width: 312px;
+    flex: 0 0 20%;
+    width: 20%;
     background: #1f2937;
     border: 1.5px solid #374151;
     border-radius: 12px;
@@ -457,7 +456,7 @@
     </div>
     <div class="no-data" id="no-data" style="display:none;">No patient data received. Open this page from a session card.</div>
   </div>
-
+  <div id="section-column-gap"></div>
   <!-- Session info panel -->
   <div id="session-panel">
     <div id="panel-header">Session Info</div>
@@ -465,7 +464,6 @@
       <!-- Filled by JS -->
     </div>
   </div>
-
 </div><!-- #content-row -->
 
 <script>
