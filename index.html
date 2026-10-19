@@ -272,8 +272,10 @@
   }
   .hub-task-btns {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+    width: 50%;
+    margin: 0 auto;
   }
   .task-btn {
     background: #f59e0b;
@@ -573,9 +575,8 @@
     </div>
     <div class="task-section-label">— TASK TRAINERS —</div>
     <div class="hub-task-btns">
-      <button class="task-btn" id="task-cat"        onclick="openModal('C-A-T Tourniquet')">C-A-T<br>Tourniquet</button>
-      <button class="task-btn" id="task-ett"        onclick="openModal('ETT')">ETT</button>
-      <button class="task-btn" id="task-laryngo"    onclick="openModal('Laryngoscope')">Laryngoscope</button>
+      <button class="task-btn" id="task-cat"        onclick="openModal('CAT Tourniquet Application')">CAT Tourniquet<br>Application</button>
+      <button class="task-btn" id="task-rsi"        onclick="openModal('Rapid Sequence Intubation')">Rapid Sequence<br>Intubation</button>
     </div>
   </div>
 </div>
@@ -853,9 +854,8 @@
   function renderTaskBtns() {
     const taskList = (TREATMENTS[currentPatient] || {}).tasks || [];
     const map = {
-      'task-cat':    'C-A-T Tourniquet',
-      'task-ett':    'ETT',
-      'task-laryngo':'Laryngoscope',
+      'task-cat': 'CAT Tourniquet Application',
+      'task-rsi': 'Rapid Sequence Intubation',
     };
     Object.entries(map).forEach(([id, name]) => {
       const btn = document.getElementById(id);
@@ -877,10 +877,10 @@
 
   /*
   -- all values for keys (Y for at least one patient) --
-      va:      ['BP Cuff','SpO2','Cardiac Monitoring','IV cannula',"Hartmann's Sol",'Blood (Packed Cells)',
-                'Analgesia (Rapid IV push)','RSI Drugs (Rapid IV push)','IO Intraosseous Needle',
+      va:      ['BP Cuff','SpO2','Cardiac Monitoring','IV cannula',"Hartmann's Solution",'Blood (Packed Cells)',
+                'Analgesia (Rapid IV push)','IO Intraosseous Needle',
                 'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine','IV Tranexamic Acid',
-                'IV Mannitol','IV Keppra','3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'IV Keppra','IV Mannitol','3% Hypertonic Saline','Post RSI Medication',
                 'Burns Dressing','Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
                 'Pelvic Binder','Toilet and Suture set','Crepe Bandage',
                 'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
@@ -898,9 +898,9 @@
   const TREATMENTS = {
     m01: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IV cannula',"Hartmann's Solution",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
                 'IV Cefazolin (antibiotics)','IM ATT tetanus vaccine',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
                 'Toilet and Suture set','Crepe Bandage',
                 'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
@@ -908,12 +908,12 @@
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     m02: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Burns Dressing','Cervical Collar',
                 'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
                 'Urinary catheter','Blanket','Broselow Tape'],
@@ -921,24 +921,24 @@
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['ETT','Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     m03: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Cervical Collar','Non-rebreather','Nasal Prongs',
                 'Chest Tube','Blanket','Broselow Tape'],
       diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     m04: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'SAM Splint','Cervical Collar',
                 'Non-rebreather','Nasal Prongs','BVM Bag Valve Mask',
                 'Blanket','Broselow Tape'],
@@ -946,26 +946,26 @@
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     f01: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
+                'IV cannula',"Hartmann's Solution",'Blood (Packed Cells)','Analgesia (Rapid IV push)',
                 'IO Intraosseous Needle','IV Tranexamic Acid',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'SAM Splint','Cervical Collar','Pelvic Binder','Traction Device',
                 'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
       diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     f02: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
                 'IV Mannitol','IV Keppra',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Wound Dressing','SAM Splint','Traction Device','Cervical Collar',
                 'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
       diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
@@ -973,13 +973,13 @@
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['ETT','Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
     f03: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
                 'IM ATT tetanus vaccine',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Wound Dressing','Cervical Collar',
                 'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
       diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray','Upper/Lower Leg X-ray',
@@ -987,19 +987,19 @@
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['C-A-T Tourniquet','ETT','Laryngoscope'],
+      tasks:   ['CAT Tourniquet Application','Rapid Sequence Intubation'],
     },
     f04: {
       va:      ['BP Cuff','SpO2','Cardiac Monitoring',
-                'IV cannula',"Hartmann's Sol",'Analgesia (Rapid IV push)',
-                '3% Hypertonic Saline','Fresh Frozen Plasma','Platelets IV Bag',
+                'IV cannula',"Hartmann's Solution",'Analgesia (Rapid IV push)',
+                'MTP','3% Hypertonic Saline','Post RSI Medication',
                 'Wound Dressing','Cervical Collar','Crepe Bandage',
                 'Non-rebreather','Nasal Prongs','Blanket','Broselow Tape'],
       diag:    ['X-ray Chest (Erect/Supine/PA and Oblique)','Pelvis X ray',
                 'Full Blood Count','Renal Panel (U/E/BICARB/CLU/CRE), serum',
                 'Blood Gases (arterial, venous, capillary), blood'],
       bedside: ['POCUS / eFAST','Glucometer'],
-      tasks:   ['Laryngoscope'],
+      tasks:   ['Rapid Sequence Intubation'],
     },
   };
 
@@ -1038,19 +1038,18 @@
     ],
     iv: [
       { label: 'IV cannula',                   qty: '100' },
-      { label: "Hartmann's Sol",               qty: '200' },
+      { label: "Hartmann's Solution",          qty: '200' },
       { label: 'Blood (Packed Cells)',          qty: '20'  },
       { label: 'Analgesia (Rapid IV push)',     qty: 'Inf' },
-      { label: 'RSI Drugs (Rapid IV Push)',     qty: '100' },
-      { label: 'IO Intraosseous Needle',        qty: '50'  },
       { label: 'IV Cefazolin (antibiotics)',    qty: '100' },
-      { label: 'IM ATT tetanus vaccine',        qty: '100' },
+      { label: 'IO Intraosseous Needle',        qty: '50'  },
       { label: 'IV Tranexamic Acid',            qty: 'Inf' },
-      { label: 'IV Mannitol',                   qty: 'Inf' },
+      { label: 'IM ATT tetanus vaccine',        qty: '100' },
       { label: 'IV Keppra',                     qty: 'Inf' },
+      { label: 'IV Mannitol',                   qty: 'Inf' },
+      { label: 'MTP',                          qty: '10'  },
       { label: '3% Hypertonic Saline',          qty: '200' },
-      { label: 'Fresh Frozen Plasma',           qty: '20'  },
-      { label: 'Platelets IV bag',              qty: '20'  },
+      { label: 'Post RSI Medication',           qty: 'Inf' },
     ],
     dressing: [
       { label: 'Burns Dressing',      qty: '100' },
